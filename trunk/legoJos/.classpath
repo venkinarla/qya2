@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre6">
+		<attributes>
+			<attribute name="owner.project.facets" value="jst.java"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/bcel.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/bluecove.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/classes.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/comm.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/commons-cli.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/cpptasks.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/hsqldb.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/javaxcomm.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/jdbm-0.12.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/jface.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/jface-ce.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/jtools.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/ojdbc14.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/openhash.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/pccomm.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/pctools.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/placelab.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/runtime.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/RXTXcomm.jar"/>
+	<classpathentry kind="lib" path="K:/FYP/fyp/legoJos/BasicLibrary/lib/swt.jar"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>

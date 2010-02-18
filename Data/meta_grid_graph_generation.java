@@ -1,3 +1,5 @@
+package Data;
+
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -100,7 +102,7 @@ public class meta_grid_graph_generation {
 		DataOutputStream dos;
 		Integer grid_count=0;
 	    try {
-	    	File file= new File("E:\\workspace\\fyp\\legoJos\\src\\dataset\\meta_grid_graph_test");
+	    	File file= new File("src/dataset/meta_grid_graph_test");
 	    	fos = new FileOutputStream(file);
 		    dos=new DataOutputStream(fos);
 		    for( int col=max_x+1; col>0; col-- ){
@@ -123,10 +125,10 @@ public class meta_grid_graph_generation {
 		    		neighbor[1] = meta_grid[rol+1][col];
 		    		neighbor[2] = meta_grid[rol][col-1];
 		    		neighbor[3] = meta_grid[rol-1][col];
-		    		/*for( int i=0; i<4; i++ ){
+		    		for( int i=0; i<4; i++ ){
 		    			if( neighbor[i] == 0 )
 		    				neighbor[i] = -1;
-		    		}*/
+		    		}
 		    		dos.writeBytes(currGrid+": "+neighbor[0]+", "
 		    						+neighbor[1]+", "+neighbor[2]+", "+neighbor[3]+"\n");
 		    	}
@@ -167,7 +169,7 @@ public class meta_grid_graph_generation {
 		FileOutputStream fos; 
 		DataOutputStream dos;
 	    try {
-	    	File file= new File("E:\\workspace\\fyp\\legoJos\\src\\dataset\\grid_test");
+	    	File file= new File("src/dataset/grid_test");
 	    	fos = new FileOutputStream(file);
 		    dos=new DataOutputStream(fos);
 		    
@@ -196,7 +198,7 @@ public class meta_grid_graph_generation {
 		FileOutputStream fos; 
 		DataOutputStream dos;
 	    try {
-	    	File file= new File("E:\\workspace\\fyp\\legoJos\\src\\dataset\\meta_grid_test");
+	    	File file= new File("src/dataset/meta_grid_test");
 	    	fos = new FileOutputStream(file);
 		    dos=new DataOutputStream(fos);
 		    

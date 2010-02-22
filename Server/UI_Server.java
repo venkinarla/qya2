@@ -153,7 +153,7 @@ public class UI_Server extends JPanel implements MapControl
 				int x = (int) (e.getX() / ZoomFactor) ;
 				int y = (int) (e.getY() / ZoomFactor) ;
 				//System.out.println(e.getX() + " " + e.getY());
-				System.out.println(x + " " + y);
+				//System.out.println(x + " " + y);
 				if (x >= MapPanel.MapWidth || y >= MapPanel.MapHeight)
 				{
 					//System.out.println(PathMap.GetMaxMapCoordx() + " OUT " + PathMap.GetMaxMapCoordy());
@@ -268,7 +268,7 @@ public class UI_Server extends JPanel implements MapControl
 		
 		// create the mode selection list
 		mode_button = new JButton();
-		mode_button.setText("Guiding Mode");
+		mode_button.setText("Training Mode");
 		mode_button.addActionListener(new ActionListener()
 		{
 			public void actionPerformed( ActionEvent e )
@@ -318,6 +318,7 @@ public class UI_Server extends JPanel implements MapControl
 					{
 					case KeyEvent.VK_ENTER:
 						sendMessage();
+						TextInputField.setText("");
 						break;
 					default:
 						;
@@ -338,6 +339,8 @@ public class UI_Server extends JPanel implements MapControl
 		{
 			public void mouseClicked( MouseEvent e )
 			{
+				LapLocPanel.cleanText();
+				TextInputField.setText("");
 				if (use_remote_device)
 				{
 					printf("use remote device to control the robot");

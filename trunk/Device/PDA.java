@@ -69,8 +69,8 @@ public class PDA extends Thread
 	{
 		while (true)
 		{
-			if ( !lego.isConnected() )
-				connectRobot();
+			//if ( !lego.isConnected() )
+			//	connectRobot();
 			/*if ( !dev_connected )
 				connectDevice();*/
 			runServer();
@@ -94,6 +94,20 @@ public class PDA extends Thread
 		// connect the PC Server 
 		connectServer();
 		System.out.println("server started");
+		
+		File file= new File("src/dataset/logging_error");
+    	FileOutputStream fos;
+		try {
+			fos = new FileOutputStream(file);
+			DataOutputStream dos = new DataOutputStream(fos);
+			dos.writeBytes("Starting server.../nserver started");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		while ( server_connected )
 		{			

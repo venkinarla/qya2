@@ -23,6 +23,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -152,6 +155,7 @@ public class GUI_AutoCtrlPanel extends JPanel
 				{
 					public void run()
 					{
+						
 						if ( !ServerConnected )
 						{
 							ServerConnected = true;
@@ -159,7 +163,8 @@ public class GUI_AutoCtrlPanel extends JPanel
 							pda_control.start();
 						}
 						else
-						{
+						{			
+						    
 							if ( ServerConnected )
 							{
 								pda_control.disconnectServer();

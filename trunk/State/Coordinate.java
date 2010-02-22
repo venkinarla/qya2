@@ -186,41 +186,82 @@ public class Coordinate
 		if ( meta_grid_graph == null )
 			initMetaGridGraph();
 		
-		//0: not discovered
-		//1: discovered 
-		//2: finished
-		Integer[] color = new Integer[meta_grid_graph.size()+1];
-		Integer[] pred = new Integer[meta_grid_graph.size()+1];
-		Integer[] children = meta_grid_graph.get(start);
-		Integer[] dTime = new Integer[meta_grid_graph.size()+1]; // discovered time
-		Boolean found = false;
 		
-		for( int i=0; i<meta_grid_graph.size()+1; i++ ){
+		Integer numGrid = meta_grid_graph.size(); // number of grids on map
+		Integer[] color = new Integer[numGrid+1]; // 0:not discoverd; 1:discoverd; 2:finished
+		Integer[] pred = new Integer[numGrid+1];
+		Integer[] children = meta_grid_graph.get(start);
+		Integer[] dTime = new Integer[numGrid+1]; // discovered time
+		//Integer[] minStep = new Integer[numGrid+1];
+		
+		for( int i=0; i<numGrid+1; i++ ){
 			color[i] = 0;
 			pred[i] = -1;
-			dTime[i] = 0;
+			dTime[i] = 999;
+			//minStep[i] = 999;
 		}
 		color[start] = 1;
-		pred[start] = -1;
 		dTime[start] = 0;
+		//minStep[goal] = 0;
 		
-		for( int i=0; i<children.length; i++ ){
-		
-			if( children[i] == -1 )
-				continue;
-			if( color[children[i]]==0 ){
-				pred[children[i]]=start;
-				if( RecursiveDFS(children[i], goal, color, pred, dTime))
+		//BFS 
+		Integer u;
+		Boolean found = false;
+		Queue q = new LinkedList() ;
+		u = start;
+		q.add(start);
+		while(true){
+			if( found ) break;//path found
+			
+			u = (Integer) q.remove();
+			color[u]=1;
+			children = meta_grid_graph.get(u);
+			for(int v: children ){
+				if( v == -1 ) 
+					continue;
+				if( v == goal ){
+					dTime[v] = dTime[u]+1;
+					pred[v] = u;
+					found = true;
+					System.out.println("Reach "+v+" in "+dTime[v]+" steps");
 					break;
+				}
+				if( color[v]==0 ){
+					pred[v] = u;
+					dTime[v] = dTime[u]+1;
+					q.add(v);
+				}
 			}
 		}
+		/*for( int i=0; i<children.length; i++ ){
+			
+			if( children[i] == -1 )
+				continue;
+			
+			pred[children[i]] = start;
+			if( color[children[i]] == 0 ){
+				RecursiveDFS(children[i], goal, color, pred, dTime, minStep);
+				if( minStep[children[i]]+1 < minStep[start])
+					minStep[start] = minStep[children[i]]+1;
+			}
+			else if( color[children[i]]==2 ){
+				if( dTime[start]+1 < dTime[children[i]]){
+					dTime[children[i]] = 1;
+					pred[children[i]] = start;
+				}
+				if( minStep[children[i]]+1 < minStep[start] ){
+					minStep[start] = minStep[children[i]]+1;
+				}
+			}
+			else continue;
+			
+		}*/
 		if( pred[goal]==-1 )
 			return null;
 		else{
 			Integer[] path = new Integer[dTime[goal]+1];
 			Integer currNode = goal;
-			System.out.println("dTime "+dTime[goal]);
-			path[dTime[goal]] = goal;
+			path[path.length-1] = goal;
 			
 			for( int i=path.length-2; i>=0; i-- ){
 				path[i] = pred[currNode];
@@ -231,91 +272,49 @@ public class Coordinate
 			System.out.println();
 			return path;
 		}
-		
-		
-		
-		
-		//Map<Integer, Boolean> expanded = new HashMap<Integer>
-		/*LinkedList<Integer> visited = new LinkedList<Integer>();
-		LinkedList<Integer> parent = new LinkedList<Integer>();
-		visited.add(start);
-		parent.add(-1);
-		int curr_idx = 0;
-		
-		while ( true )
-		{
-			if ( curr_idx == visited.size() )
-			{
-				System.out.println("No");
-				return null;
-			}
-			Integer node = visited.get(curr_idx);
-			if ( node == goal )
-				break;
-			
-			Integer[] children = meta_grid_graph.get(node);
-			Integer vater = ((curr_idx == 0)? start : visited.get(parent.get(curr_idx)));
-			for ( int i=0; i<4; ++i )
-			{
-				if ( children[i] != -1 && children[i] != vater )
-				{
-					visited.add(children[i]);
-					parent.add(curr_idx);
-				}
-			}
-			++curr_idx;
-		}
-		
-		Integer curr_vater = null;
-		LinkedList<Integer> path_finder = new LinkedList<Integer>();
-		while ( curr_idx != -1 )
-		{
-			curr_vater = visited.get(curr_idx);
-			path_finder.push(curr_vater);
-			curr_idx = parent.get(curr_idx);
-		}
-		
-		Integer[] path = new Integer[path_finder.size()];
-		for ( int i=0; i<path_finder.size(); ++i )
-		{
-			path[i] = path_finder.get(i);
-			System.out.print(path_finder.get(i) + " ");
-		}
-		System.out.println();
-		*/
 	}
 	
-	public static Boolean RecursiveDFS(Integer u, Integer v, Integer[] color, Integer[] pred
-										,Integer[] dTime){
+/*	public static Integer RecursiveDFS(Integer u, Integer v, Integer[] color, Integer[] pred
+										,Integer[] dTime, Integer[] minStep){
+		
 		color[u] = 1;
 		dTime[u] = dTime[pred[u]]+1;
 		Integer[] children = meta_grid_graph.get(u);
-		Boolean found = false;
-		/*System.out.println("Enter u");
-		System.out.println(u+":"+ children[0]+":"+ children[1]+ ":"+ children[2]+":"
-				+ children[3]);*/
 		for( int i=0; i<children.length; i++ ){
 			
 			if( children[i]==-1 )
 				continue;
-			
-			if( color[children[i]]==0 ){
-				System.out.println(children[i]+" : "+u);
-				pred[children[i]] = u;
-				if( children[i]==v ){
-					dTime[v] = dTime[pred[v]]+1;
-					System.out.println("Reach "+pred[v]+" "+ dTime[v]);
-					return true;
+			if( children[i]==v ){
+				System.out.println("reach pred:"+u+" dTime "+dTime[u]);
+				if( dTime[u]+1 < dTime[v] ){
+					dTime[v] = dTime[u]+1;
+					pred[v] = u;
+					minStep[u] = 1;
+					return minStep[u];
 				}
-				if( RecursiveDFS(children[i],v, color, pred, dTime) )
-					return true;
+			}
+			if( color[children[i]]==0 ){
+				pred[children[i]] = u;
+				Integer tempMinStep = RecursiveDFS(children[i], v, color, pred, dTime, minStep);
+				if( tempMinStep+1 < minStep[u] )
+					minStep[u] = tempMinStep+1;
+			}
+			else if( color[children[i]]==2 ){
+				if( dTime[u]+1 < dTime[children[i]]){
+					dTime[children[i]] = dTime[u]+1;
+					pred[children[i]] = u;
+				}
+				if( minStep[children[i]]+1< minStep[u]){
+					minStep[u] = minStep[children[i]]+1;
+					pred[children[i]] = u;
+					dTime[children[i]] = dTime[u]+1;
+				}
 			}
 		}
 		color[u] = 2;
-		return false;
-		
+		return minStep[u];	
 	}
-	
+*/
 	
 	/**
 	 * get the meta grid number for a small grid specified by the coord
@@ -417,6 +416,23 @@ public class Coordinate
 		return "x = " + x + ", y = " + y;
 	}
 
+	//utility
+	public static void printPath( Integer[] a, Integer b, Integer step){
+		Integer[] c = new Integer[step];
+		for( int i=0; i<c.length; i++ )
+			c[i] = 0;
+		
+		c[c.length-1] = b;
+		for( int i=c.length-2; i>=0; i-- ){
+			c[i] = a[b];
+			b = c[i];
+		}
+		for( int i=0; i<c.length; i++ ){
+			System.out.print(c[i]+" ");
+		}
+		System.out.println();
+	}
+	
 	public static void main( String[] args )
 	{
 		String coord_str = "x = 18, y = 32";
@@ -428,7 +444,7 @@ public class Coordinate
 
 		Coordinate.initMetaGrid();
 		
-		Coordinate.search(1, 100);
+		Coordinate.search(5, 15);
 		System.out.println("Get Grid Num :"+Coordinate.getGridNum(coord));
 	}
 }

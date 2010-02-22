@@ -532,7 +532,7 @@ public class UI_Server extends JPanel implements MapControl
 				{	
 					// ask for state information
 					out.println("getdata");
-					//TODO
+					/*//TODO
 					// start requesting ap signal data
 					RobotAPSignal = new Vector<Vector<SignalStrength>>();
 					RobotAPSignal.add(new Vector<SignalStrength>());
@@ -541,7 +541,7 @@ public class UI_Server extends JPanel implements MapControl
 						{
 							out.println("getap " + sample_size + " " + scan_interval);
 						}
-					
+					*/
 					can_move = false;
 				}
 				
@@ -569,7 +569,7 @@ public class UI_Server extends JPanel implements MapControl
 					{
 						// log the state data
 						String[] data_in = InMessage.substring(7).split(",");
-						if ( data_in.length != 6)
+						/*if ( data_in.length != 6)
 						{
 							System.err.println("error: data received incomplete");
 						}
@@ -599,7 +599,7 @@ public class UI_Server extends JPanel implements MapControl
 
 							Logging.logStateData(log_file, robot_reading, meta_path[meta_idx]);
 						}
-						
+						/
 						
 						
 						if ( meta_idx == meta_path.length - 1 )
@@ -614,7 +614,7 @@ public class UI_Server extends JPanel implements MapControl
 							goal_state = null;
 							
 							continue;
-						}
+						}*/
 					
 						int curr_meta_state = meta_path[meta_idx];
 						int next_meta_state = meta_path[++meta_idx];
@@ -642,7 +642,7 @@ public class UI_Server extends JPanel implements MapControl
 						GetAP = true;
 						RobotAPSignal.lastElement().addElement(comProtocol.GetSignal());
 					}
-					else if (OutMessage.compareToIgnoreCase("END") == 0)
+					/*else if (OutMessage.compareToIgnoreCase("END") == 0)
 					{
 						GetAP = false;
 						printf("finished with getting ap data, saving...");
@@ -696,7 +696,7 @@ public class UI_Server extends JPanel implements MapControl
 							// clear the current collected signal
 							RobotAPSignal.clear();
 						}
-					}
+					}*/
 					else if (OutMessage.compareToIgnoreCase("HELP") == 0)
 					{
 						printf("Command List");
@@ -761,15 +761,15 @@ public class UI_Server extends JPanel implements MapControl
 		}
 	}
 
-	protected void finalize()
+	/*protected void finalize()
 	{
 		// save the data in the end
 		training_data.saveDataSet();
 		ServerClose();
-	}
+	}*/
 
 	// acquire ap data from the PDA, add them to our training dataset
-	public void getTrainingData(Vector<SignalStrength> ap_signal_list ,Coordinate curr_coord )
+	/*public void getTrainingData(Vector<SignalStrength> ap_signal_list ,Coordinate curr_coord )
 	{
 		for ( int i=0; i<ap_signal_list.size(); ++i )
 		{
@@ -785,7 +785,7 @@ public class UI_Server extends JPanel implements MapControl
 	{
 		novo_vec.meta_grid = meta_grid;
 		training_data.sig_vec_base.add(novo_vec);
-	}
+	}*/
 
 	
 	public int InitialAngleG()
@@ -803,9 +803,9 @@ public class UI_Server extends JPanel implements MapControl
 	{
 		String command1 = null;
 		String command2 = "MOVE 200 10000";
-		
+		System.out.println("meta1=" + meta1 + " " + "meta2=" + meta2);
 		Integer[] children = Coordinate.meta_grid_graph.get(meta1);
-		
+		System.out.println("children[0]=" + children[0] + " " + "children[1]=" + children[1]);
 		if ( children[0] == meta2 )
 		{
 			if ( angle != 0 )
@@ -864,7 +864,6 @@ public class UI_Server extends JPanel implements MapControl
 				out.println(ret[i]);
 			}
 		}
-		
 		// return the new angle for the robot
 		return angle;
 	}

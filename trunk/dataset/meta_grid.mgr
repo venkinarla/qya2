@@ -2,81 +2,77 @@
 % specify a starting coordinate and an ending coordinate which form a rectangle representing the "meta" grid
 % future planning will be based on those "meta" grids 
 
-0
-x = 39, y = 11
-x = 39, y = 11
-
 1 
-x = 38, y = 11
-x = 38, y = 11
+x = 39, y = 11
+x = 39, y = 11
 
 2
-x = 38, y = 12
-x = 38, y = 12
+x = 39, y = 12
+x = 39, y = 12
 
 3
-x = 39, y = 12
-x = 39, y = 12
+x = 38, y = 11
+x = 38, y = 11
 
 4
-x = 38, y = 13
-x = 38, y = 13
+x = 38, y = 12
+x = 38, y = 12
 
 5
-x = 38, y = 14
-x = 38, y = 14
+x = 38, y = 13
+x = 38, y = 13
 
 6
-x = 38, y = 15
-x = 38, y = 15
+x = 38, y = 14
+x = 38, y = 14
 
 7
-x = 37, y = 12
-x = 37, y = 12
+x = 38, y = 15
+x = 38, y = 15
 
 8
-x = 36, y = 12
-x = 36, y = 12
+x = 37, y = 12
+x = 37, y = 12
 
 9 
-x = 35, y = 12
-x = 35, y = 12
+x = 36, y = 12
+x = 36, y = 12
 
 10 
-x = 34, y = 12
-x = 34, y = 12
+x = 35, y = 12
+x = 35, y = 12
 
 11
-x = 33, y = 12
-x = 33, y = 12
+x = 34, y = 12
+x = 34, y = 12
 
 12
-x = 32, y = 12
-x = 32, y = 12
+x = 33, y = 12
+x = 33, y = 12
 
 13
-x = 47, y = 21
-x = 52, y = 23
+x = 32, y = 12
+x = 32, y = 12
 
 14
-x = 53, y = 21
-x = 58, y = 23
+x = 31, y = 12
+x = 31, y = 12
 
 15
-x = 59, y = 21
-x = 64, y = 23
+x = 31, y = 13
+x = 31, y = 13
 
 16
-x = 65, y = 21
-x = 70, y = 23
+x = 31, y = 14
+x = 31, y = 14
 
 17
-x = 71, y = 21
-x = 76, y = 23
+x = 31, y = 15
+x = 31, y = 15
 
 18
-x = 77, y = 21
-x = 82, y = 23
+x = 30, y = 9
+x = 30, y = 9
 
 19 
 x = 83, y = 21

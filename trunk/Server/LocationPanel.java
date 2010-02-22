@@ -144,12 +144,18 @@ public class LocationPanel extends JPanel
 		textStart.setText("X:" + String.valueOf(startx) + "," + "Y:" + String.valueOf(starty));
 	}
 
-	public void setENDxy( int x, int y )//Display the X and Y value of the starting point
+	public void setENDxy( int x, int y ) //Display the X and Y value of the starting point
 	{
 		endx = x;
 		endy = y;
 		textEnd.setText("X:" + String.valueOf(endx) + "," + "Y:" + String.valueOf(endy));
 	}
+	
+	public void cleanText() // Remove the displayed value of two textfield.
+	{
+		textStart.setText("");
+		textEnd.setText("");
+	}	
 
 	class LabelPanel extends JPanel //Panel including the start, end and go button
 	{

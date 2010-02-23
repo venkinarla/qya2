@@ -341,6 +341,9 @@ public class UI_Server extends JPanel implements MapControl
 			{
 				LapLocPanel.cleanText();
 				TextInputField.setText("");
+				PathMap.setSTxy(-1,-1);
+				PathMap.setENDxy(-1,-1);
+				PathMap.repaint();
 				if (use_remote_device)
 				{
 					printf("use remote device to control the robot");
@@ -568,7 +571,7 @@ public class UI_Server extends JPanel implements MapControl
 							InMessage.substring(0, 7).equalsIgnoreCase("getdata") )
 					{
 						// log the state data
-						String[] data_in = InMessage.substring(7).split(",");
+						//String[] data_in = InMessage.substring(7).split(",");
 						/*if ( data_in.length != 6)
 						{
 							System.err.println("error: data received incomplete");
@@ -615,25 +618,39 @@ public class UI_Server extends JPanel implements MapControl
 							
 							continue;
 						}*/
-					
 						int curr_meta_state = meta_path[meta_idx];
-						int next_meta_state = meta_path[++meta_idx];
-						
-						// display the current position on the map
-						Coordinate curr_path_state = Coordinate.getRandCoord(curr_meta_state);
-						printf( "Robot current position: " + curr_meta_state);
-						PathMap.setRobxy(curr_path_state.x, 
-								curr_path_state.y);
-						PathMap.repaint();
-						
-						// execute the command
-						curr_angle = stateTransCommand(
-										curr_meta_state, 
-										next_meta_state, 
-										curr_angle,
-										out);
-						
-						printf("Robot current orientation: " + curr_angle);
+						if (curr_meta_state != Coordinate.getGridNum(goal_state))
+						{
+							int next_meta_state = meta_path[++meta_idx];
+							// display the current position on the map
+							Coordinate curr_path_state = Coordinate.getRandCoord(curr_meta_state);
+							printf( "Robot current position: " + curr_meta_state);
+							PathMap.setRobxy(curr_path_state.x, curr_path_state.y);
+							PathMap.repaint();
+							
+							// execute the command
+							curr_angle = stateTransCommand(curr_meta_state, next_meta_state, curr_angle,out);
+							switch(curr_angle)
+							{
+								case 0	: 	printf("Robot current orientation: " + curr_angle + " (Facing North)");
+											break;
+								case 90	: 	printf("Robot current orientation: " + curr_angle + " (Facing East)");
+											break;
+								case 180	: 	printf("Robot current orientation: " + curr_angle + " (Facing South)");
+												break;
+								case -90	: 	printf("Robot current orientation: " + curr_angle + " (Facing West)");
+												break;							
+							}
+						}
+						else
+						{
+							// Robot reach the destination
+							Coordinate Destination = Coordinate.getRandCoord(curr_meta_state);
+							printf( "Robot current position: " + curr_meta_state);
+							PathMap.setRobxy(Destination.x, Destination.y);
+							PathMap.repaint();
+							break;
+						}
 					}
 					
 					OutMessage = comProtocol.processInput(InMessage);
@@ -711,9 +728,10 @@ public class UI_Server extends JPanel implements MapControl
 						printf("From client "
 								+ clientSock.getInetAddress().getHostName()
 								+ " : " + InMessage);
-
+					//System.out.println("OUTOUTOTUTOUTOT = " + OutMessage);
 					Thread.sleep(100);
 				}
+				
 				catch (InterruptedException e)
 				{
 					e.printStackTrace();
@@ -788,75 +806,67 @@ public class UI_Server extends JPanel implements MapControl
 	}*/
 
 	
-	public int InitialAngleG()
+	/*public int InitialAngleG()
 	{
 		int OrgAngle = 0;
 		return OrgAngle;
-	}
+	}*/
 	
 	// meta1 and meta2 are adjacent
-	public static int stateTransCommand(
-			Integer meta1, 
-			Integer meta2, 
-			Integer angle,
-			PrintWriter out)
+	public static int stateTransCommand(Integer meta1, Integer meta2, Integer angle, PrintWriter out)
 	{
-		String command1 = null;
-		String command2 = "MOVE 200 10000";
-		System.out.println("meta1=" + meta1 + " " + "meta2=" + meta2);
-		Integer[] children = Coordinate.meta_grid_graph.get(meta1);
-		System.out.println("children[0]=" + children[0] + " " + "children[1]=" + children[1]);
-		if ( children[0] == meta2 )
+		String command1 = null;				// Command to turn the robot
+		String command2 = "MOVE 200 10000"; // Command to move forward
+		
+		Integer[] children = Coordinate.meta_grid_graph.get(meta1); // Get the neighbor grid number of the current grid
+		
+		if ( children[0] == meta2 )			// If next grid is at [EAST] of the current grid
 		{
-			if ( angle != 0 )
-			{
-				command1 = "TURNANGLE " + Coordinate.transAngle(angle, 0);
-				angle = 0;
-			}
-		}
-		else if ( children[1] == meta2 )
-		{
-			if ( angle != 90 )
+			if ( angle != 90)				// Check to see if the robot facing east
 			{
 				command1 = "TURNANGLE " + Coordinate.transAngle(angle, 90);
 				angle = 90;
 			}
 		}
-		else if ( children[2] == meta2 )
+		else if ( children[1] == meta2 )	// If next grid is at [SOUTH] of the current grid
 		{
-			if ( angle != 180 )
+			if ( angle != 180 )				// Check to see if the robot facing south
 			{
 				command1 = "TURNANGLE " + Coordinate.transAngle(angle, 180);
 				angle = 180;
 			}
 		}
-		
-		else if ( children[3] == meta2 )
+		else if ( children[2] == meta2 )	// If next grid is at [WEST] of the current grid
 		{
-			if ( angle != -90 )
+			if ( angle != -90 )				// Check to see if the robot facing west
 			{
 				command1 = "TURNANGLE " + Coordinate.transAngle(angle, -90);
 				angle = -90;
 			}
 		}
 		
+		else if ( children[3] == meta2 )	// If next grid is at [NORTH] of the current grid
+		{
+			if ( angle != 0 )				// Check to see if the robot facing north
+			{
+				command1 = "TURNANGLE " + Coordinate.transAngle(angle, 0);
+				angle = 0;
+			}
+		}
+		
 		String[] ret = {null, null};
+		
 		if ( command1 != null )
 		{
-			ret[0] = command1;
-			ret[1] = command2;
-			
+			ret[0] = command1;			// turn command to turn the robot
+			ret[1] = command2;			// move command to move the robot
 		}
 		else
 		{
-			ret[0] = command2;
+			ret[0] = command2;			// move command only 
 		}
 		
-		// log the action
-		// now this task is assigned to the robot control part
-		//Logging.logActionData("log.txt", ret);
-		
-		// send these command out to the robot
+		// Send these commands out to the robot
 		for ( int i=0; i<ret.length; ++i )
 		{
 			if ( ret[i] != null )
@@ -864,6 +874,7 @@ public class UI_Server extends JPanel implements MapControl
 				out.println(ret[i]);
 			}
 		}
+		
 		// return the new angle for the robot
 		return angle;
 	}

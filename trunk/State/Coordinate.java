@@ -125,55 +125,46 @@ public class Coordinate
 		System.out.println("meta grid map loaded");
 	}
 	
-	// describe the change of angle
 	public static int transAngle( int init_angle, int goal_angle )
+	// Return the angle that used to turn the robot. 
 	{	
-		int[][] trans_table = 
+		if (init_angle == 0)
 		{
-				{0, 90, 180, -90},
-				{-90, 0, 90, -180},
-				{-180, -90, 0, 90},
-				{90, 180, -90, 0}
-		};
-		
-		int x = -1, y = -1;
-		switch ( init_angle )
-		{
-		case 0:
-			x = 0;
-			break;
-		case 90:
-			x = 1;
-			break;
-		case 180:
-			x = 2;
-			break;
-		case -90:
-			x = 3;
-			break;
-		default:
-			break;
+			if (goal_angle == 90)
+				return 90;
+			else if (goal_angle == 180)
+				return 180;
+			else if (goal_angle == -90)
+				return -90;
 		}
-		
-		switch ( goal_angle )
+		else if (init_angle == 90)
 		{
-		case 0:
-			y = 0;
-			break;
-		case 90:
-			y = 1;
-			break;
-		case 180:
-			y = 2;
-			break;
-		case -90:
-			y = 3;
-			break;
-		default:
-			break;
+			if (goal_angle == 0)
+				return -90;
+			else if (goal_angle == 180)
+				return 90;
+			else if (goal_angle == -90)
+				return 180;
 		}
-		
-		return trans_table[x][y];
+		else if (init_angle == 180)
+		{
+			if (goal_angle == 0)
+				return 180;
+			else if (goal_angle == 90)
+				return -90;
+			else if (goal_angle == -90)
+				return 90;
+		}
+		else if (init_angle == -90)
+		{
+			if (goal_angle == 0)
+				return 90;
+			else if (goal_angle == 90)
+				return 180;
+			else if (goal_angle == 180)
+				return -90;
+		}
+		return 999;
 	}
 	
 	

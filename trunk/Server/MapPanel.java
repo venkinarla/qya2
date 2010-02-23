@@ -98,8 +98,8 @@ public class MapPanel extends JPanel
 			int correctStarty = starty / 4 + 5;
 			int correctEndx = endx / 4 + 5;
 			int correctEndy = endy / 4 + 5;
-			int correctRobx = Robx / 4 + 5;
-			int correctRoby = Roby / 4 + 5;			
+			int correctRobx = Robx / 4 + 3;
+			int correctRoby = Roby / 4 + 3;			
 			// display the shortest path on the map
 			/*g.setColor(Color.yellow);
 			if ( shortest_path != null )

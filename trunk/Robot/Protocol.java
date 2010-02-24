@@ -12,7 +12,7 @@ public class Protocol
 	public static final int TURNANGLE = 3;
 	public static final int GETAP = 4;
 	public static final int ISOBSTACLE = 5;
-	public static final int HELP = 6;
+	//public static final int HELP = 6;
 	public static final int MOVEDIST = 7;
 	public static final int MANUAL = 8;
 
@@ -167,7 +167,6 @@ public class Protocol
 					commandDuration = Integer.parseInt(command[2]);
 					break;
 				case ISOBSTACLE:
-				case HELP:
 					return true;
 				default:
 					validCommand = false;

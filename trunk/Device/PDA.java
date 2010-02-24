@@ -70,10 +70,13 @@ public class PDA extends Thread
 	{
 		while (true)
 		{
-			//if ( !lego.isConnected() )
-			//	connectRobot();
-			//if ( !dev_connected )
-			//	connectDevice();
+			if (lego != null)
+			{
+				if ( !lego.isConnected() )
+					connectRobot();
+				//if ( !dev_connected )
+				//	connectDevice();
+			}
 			runServer();
 
 			try
@@ -91,10 +94,10 @@ public class PDA extends Thread
 	public void runServer()
 	{
 		// initialization
-		System.out.println("starting server...");
+		System.out.println("Starting client...");
 		// connect the PC Server 
 		connectServer();
-		System.out.println("server started");
+		System.out.println("Client started");
 		
 		while ( server_connected )
 		{			
@@ -111,7 +114,7 @@ public class PDA extends Thread
 				}
 				
 				// collect ap data and send back to server
-				if ( in_msg.length() > 5 && 
+				else if ( in_msg.length() > 5 && 
 						in_msg.substring(0, 5).equalsIgnoreCase("getap") )
 				{
 					// e.g. getap num_sample scan_interval
@@ -151,19 +154,19 @@ public class PDA extends Thread
 				{
 					if ( lego.isConnected() )
 					{
-						sout.println( "getdata " + 
-							lego.getLeftDist() + ", " + 
-							lego.getRightDist() + ", " + 
-							lego.getFrontDist() + ", " + 
-							lego.getFrontLight() + ", " + 
-							lego.getLeftSpeed() + ", " + 
-							lego.getRightSpeed());
+						//TODO
+						sout.println(
+							"Front : [" + lego.getFrontDist() + "]  " +
+							"Left : [" + lego.getLeftDist() + "]  " + 
+							"Right : [" + lego.getRightDist() + "]  " +  
+							"Left speed : [" + lego.getLeftSpeed() + "]  " + 
+							"Right speed : [" + lego.getRightSpeed() + "]  " +
+							"Light reading : [" + lego.getFrontLight() + "]"
+						);
 					}
 					else
 					{
-						sout.println("getdata " + 
-								-1 + ", " + -1 + ", " + -1 + 
-								", " + -1 + ", " + -1 + ", " + -1);
+						sout.println("ERROR : Robot is not connected!");
 					}
 					
 					continue;
@@ -175,7 +178,7 @@ public class PDA extends Thread
 
 					// process the command just received
 					String out_msg = comm_protocol.processInput(in_msg);
-
+					//TODO
 					// execute the command
 					runCommand();
 
@@ -213,7 +216,7 @@ public class PDA extends Thread
 			
 			if ( !lego.isConnected() )
 			{
-				System.err.println("error: the robot is not connected");
+				System.err.println("ERROR : Robot is not connected!");
 				return false;
 			}
 
@@ -256,10 +259,6 @@ public class PDA extends Thread
 					// do nothing now
 					//System.out.println("go and get the ball!");
 					break;
-				case Protocol.HELP:
-					// let the PC server display the help menu
-					sout.println("HELP");
-					break;
 				default:
 					return false;
 				}
@@ -287,12 +286,12 @@ public class PDA extends Thread
 
 				System.out.print("IP: ");
 				IP = sysin.readLine();
-				System.out.print("port: ");
+				System.out.print("Port: ");
 				port = Integer.parseInt(sysin.readLine());
 			}
 			catch (IOException e)
 			{
-				System.err.println("error: cannot read IP and port info\n"
+				System.err.println("ERROR: cannot read IP and Port info\n"
 						+ e.toString());
 			}
 		}
@@ -314,7 +313,7 @@ public class PDA extends Thread
 			}
 			catch (Exception e1)
 			{
-				System.out.println("connection error: " + e1.toString());
+				System.out.println("Connection error: " + e1.toString());
 			}
 
 			try

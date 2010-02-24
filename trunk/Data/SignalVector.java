@@ -83,9 +83,11 @@ public class SignalVector
 	{
 		double dist = 0.0;
 		Set<String> key_set =vec1.vec.keySet();
-		key_set.retainAll(vec2.vec.keySet());
+		//key_set.retainAll(vec2.vec.keySet());
+		
 		for ( String mac_addr : key_set )
 		{
+			//System.out.println(mac_addr);
 			dist += Math.sqrt( Math.abs( vec2.getRSSI(mac_addr) - vec1.getRSSI(mac_addr) ));
 		}
 		return dist;

@@ -133,9 +133,11 @@ public class SignalDatabase
 	public void loadDataSet()
 	{
 		Scanner fin = null;
+		Scanner fin2 = null;
 		try
 		{
 			fin = new Scanner(new FileInputStream(dataset_file));
+			fin2 = new Scanner(new FileInputStream(dataset_file2));
 		}
 		catch (FileNotFoundException e)
 		{
@@ -145,6 +147,7 @@ public class SignalDatabase
 			return;
 		}
 		
+		//load dataset1
 		boolean start = false;
 		Integer meta_grid = 0;
 		Integer dim = 0;
@@ -155,7 +158,7 @@ public class SignalDatabase
 			if ( curr_read.length() == 0 )
 			{
 				start = true;
-				//start = false;  to read new dataset format
+				//start = false; //to read new dataset format
 			}
 			else if ( curr_read.charAt(0) == '%' )
 			{
@@ -163,8 +166,50 @@ public class SignalDatabase
 			}
 			else if ( curr_read.charAt(0) == '#' )
 			{
+				//start = false;
+				start = true; //to read new dataset format
+			}
+			else if ( start )
+			{
+				if( curr_read.charAt(0)=='#' ){
+					start = false;
+					continue;
+				}
 				start = false;
-				//start = true; to read new dataset format
+				
+				sig_vec_base.add(new SignalVector());
+				sig_vec_base.lastElement().dim = 
+					Integer.parseInt(curr_read.split(" ")[0]);
+				sig_vec_base.lastElement().meta_grid = 
+					Integer.parseInt(curr_read.split(" ")[1]);
+			}
+			else
+			{	
+				String[] reading = curr_read.split(" ");
+				sig_vec_base.lastElement().put(
+						reading[0], Integer.parseInt(reading[1]));
+			}
+		}
+		
+		//load dataset 2
+		start = false;
+		meta_grid = 0;
+		dim = 0;
+		while ( fin2.hasNextLine() )
+		{
+			String curr_read = fin2.nextLine().trim();
+			
+			if ( curr_read.length() == 0 )
+			{
+				start = false; //to read new dataset format
+			}
+			else if ( curr_read.charAt(0) == '%' )
+			{
+				// do nothing
+			}
+			else if ( curr_read.charAt(0) == '#' )
+			{
+				start = true; //to read new dataset format
 			}
 			else if ( start )
 			{
@@ -178,19 +223,11 @@ public class SignalDatabase
 				sig_vec_base_v.elementAt(meta_grid-1).add(new SignalVector());
 				sig_vec_base_v.elementAt(meta_grid-1).lastElement().dim = dim;
 				sig_vec_base_v.elementAt(meta_grid-1).lastElement().meta_grid = meta_grid;
-				
-				sig_vec_base.add(new SignalVector());
-				sig_vec_base.lastElement().dim = 
-					Integer.parseInt(curr_read.split(" ")[0]);
-				sig_vec_base.lastElement().meta_grid = 
-					Integer.parseInt(curr_read.split(" ")[1]);
 			}
 			else
 			{	
 				String[] reading = curr_read.split(" ");
 				sig_vec_base_v.elementAt(meta_grid-1).lastElement().put(
-						reading[0], Integer.parseInt(reading[1]));
-				sig_vec_base.lastElement().put(
 						reading[0], Integer.parseInt(reading[1]));
 			}
 		}

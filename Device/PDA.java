@@ -20,12 +20,13 @@ public class PDA extends Thread
 {
 	//********** data member ************
 	
-	/*// device side communication
+	// device side communication
 	private boolean dev_connected = false;
 	private ServerSocket dev_server_socket;
 	private Socket dev_client_socket;
 	private BufferedReader din;
-	private PrintWriter dout;*/
+	private PrintWriter dout;
+	
 	
 	// robot connection
 	public Tribot lego;
@@ -71,8 +72,8 @@ public class PDA extends Thread
 		{
 			//if ( !lego.isConnected() )
 			//	connectRobot();
-			/*if ( !dev_connected )
-				connectDevice();*/
+			//if ( !dev_connected )
+			//	connectDevice();
 			runServer();
 
 			try
@@ -94,20 +95,6 @@ public class PDA extends Thread
 		// connect the PC Server 
 		connectServer();
 		System.out.println("server started");
-		
-		File file= new File("src/dataset/logging_error");
-    	FileOutputStream fos;
-		try {
-			fos = new FileOutputStream(file);
-			DataOutputStream dos = new DataOutputStream(fos);
-			dos.writeBytes("Starting server.../nserver started");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
 		while ( server_connected )
 		{			
@@ -439,9 +426,9 @@ public class PDA extends Thread
 				//
 			}
 		}
-	}*/
+	}
 	
-	/*public void disconnectDevice()
+	public void disconnectDevice()
 	{
 		while ( dev_connected )
 		{

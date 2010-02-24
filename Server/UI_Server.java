@@ -296,16 +296,16 @@ public class UI_Server extends JPanel implements MapControl
 
 		gc0.gridwidth = GridBagConstraints.RELATIVE;
 		gc0.weightx = 19;
-		gc0.weighty = 7;
+		gc0.weighty = 0;
 		add(Mapscroll, gc0);
 
 		gc0.gridwidth = GridBagConstraints.REMAINDER;
 		gc0.weightx = 1;
-		gc0.weighty = 7;
+		gc0.weighty = 0;
 		add(Server_CtrPanel, gc0);
 
 		gc0.weightx = 20;
-		gc0.weighty = 3;
+		gc0.weighty = 1;
 		add(CtrDisplay, gc0);
 
 		comProtocol = new UI_Protocol();
@@ -340,7 +340,8 @@ public class UI_Server extends JPanel implements MapControl
 			public void mouseClicked( MouseEvent e )
 			{
 				LapLocPanel.cleanText();
-				TextInputField.setText("");
+				TextDisplayField.setText(null);
+				TextInputField.setText(null);
 				PathMap.setSTxy(-1,-1);
 				PathMap.setENDxy(-1,-1);
 				PathMap.repaint();
@@ -404,7 +405,19 @@ public class UI_Server extends JPanel implements MapControl
 	public void sendMessage()
 	{
 		String Message = TextInputField.getText();
-		if (connected)
+		if ((Message.compareToIgnoreCase("HELP") == 0) || (Message.compareToIgnoreCase("help") == 0))
+		{
+			//System.out.println("asdfkjhakjfshgkadf " + Message);
+			printf("Command List");
+			printf("1. STOP                                     ( Stop the robot )");
+			printf("2. MOVE [speed] [duration]                  ( Move the robot forward [MAX Speed = 720] )");
+			printf("3. TURN [leftspeed] [rightspeed] [duration] ( Turn the robot by duration )");
+			printf("4. TURNANGLE [angle]                        ( Turn the robot by angle )");
+			printf("5. GETAP                                    ( Robot will scan and return signal strength )");
+			printf("6. ISOBSTACLE				                ( Detect if there is obstacles around the robot )");
+			//TODO
+		}
+		else if (connected)
 		{
 			printf("To Client : " + Message);
 			out.println(Message);
@@ -501,6 +514,13 @@ public class UI_Server extends JPanel implements MapControl
 			{
 				try
 				{
+					InMessage = in.readLine();
+					if ( InMessage.substring(0, 5).compareToIgnoreCase("Front") == 0 ||
+						 InMessage.substring(0, 5).compareToIgnoreCase("ERROR") == 0
+						)
+					{
+						printf(InMessage);
+					}
 					Thread.sleep(500);
 				}
 				catch (InterruptedException e)
@@ -510,7 +530,6 @@ public class UI_Server extends JPanel implements MapControl
 				}
 				// wait for the signal
 			}
-			
 			while (true)
 			{	
 				// request a new path
@@ -558,18 +577,23 @@ public class UI_Server extends JPanel implements MapControl
 						connected = false;
 						break;
 					}
-
+					else if ( InMessage.compareToIgnoreCase("OK") == 0)
+					{
+						printf("Robot Fucking Turned!");
+					}
 					// while a sequence of command is finished
-					if ( InMessage.compareToIgnoreCase("FINISHED") == 0 )
+					else if ( InMessage.compareToIgnoreCase("FINISHED") == 0 )
 					{
 						can_move = true;
+						//System.out.println("AT FINISHED");
 					}
 					
 					// get all the sensors and motors readings from the device
 					// and log the current state of the robot into the log file
-					if ( InMessage.length() > 7 && 
+					else if ( InMessage.length() > 7 && 
 							InMessage.substring(0, 7).equalsIgnoreCase("getdata") )
 					{
+						//System.out.println("AT getdata");
 						// log the state data
 						//String[] data_in = InMessage.substring(7).split(",");
 						/*if ( data_in.length != 6)
@@ -629,7 +653,7 @@ public class UI_Server extends JPanel implements MapControl
 							PathMap.repaint();
 							
 							// execute the command
-							curr_angle = stateTransCommand(curr_meta_state, next_meta_state, curr_angle,out);
+							curr_angle = stateTransCommand(curr_meta_state, next_meta_state, curr_angle, out);
 							switch(curr_angle)
 							{
 								case 0	: 	printf("Robot current orientation: " + curr_angle + " (Facing North)");
@@ -649,6 +673,7 @@ public class UI_Server extends JPanel implements MapControl
 							printf( "Robot current position: " + curr_meta_state);
 							PathMap.setRobxy(Destination.x, Destination.y);
 							PathMap.repaint();
+							printf( "Robot reach the destination successfully!");
 							break;
 						}
 					}
@@ -714,7 +739,7 @@ public class UI_Server extends JPanel implements MapControl
 							RobotAPSignal.clear();
 						}
 					}*/
-					else if (OutMessage.compareToIgnoreCase("HELP") == 0)
+					/*else if (OutMessage.compareToIgnoreCase("HELP") == 0)
 					{
 						printf("Command List");
 						printf("1. STOP 'DURATION'");
@@ -723,12 +748,10 @@ public class UI_Server extends JPanel implements MapControl
 						printf("4. TURNANGLE 'ANGLE' (ROBOT will stop and turn at defined angle)");
 						printf("5. GETAP (Robot will scan and return signal strength)");
 						printf("6. ISOBSTACLE (Detect if there is obstacle away)");
-					}
+					}*/
 					else
-						printf("From client "
-								+ clientSock.getInetAddress().getHostName()
-								+ " : " + InMessage);
-					//System.out.println("OUTOUTOTUTOUTOT = " + OutMessage);
+						printf("From client " + clientSock.getInetAddress().getHostName() + " : " + InMessage);
+						//System.out.println("OUTOUTOTUTOUTOT = " + OutMessage);TODO
 					Thread.sleep(100);
 				}
 				

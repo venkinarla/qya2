@@ -122,7 +122,7 @@ public class Tribot
 	// specify the sensors and motors
 	public void configure()
 	{
-		name = "Derek";
+		name = "NXT";
 		setBT();
 		
 		if (!connected)
@@ -135,8 +135,8 @@ public class Tribot
 		right_motor = new RemoteMotor(cmd, portB);
 		aux_motor = new RemoteMotor(cmd, portC);
 		
-		left_motor.setSpeed(200);
-		right_motor.setSpeed(200);
+		left_motor.setSpeed(720); 					//MAX speed = 720
+		right_motor.setSpeed(720);
 		//aux_motor.setSpeed(300);
 
 		left_sonar = new UltrasonicSensor(port1);
@@ -157,7 +157,7 @@ public class Tribot
 
 			if (dev_info.length <= 0)
 			{
-				System.err.println("error: cannot find any device");
+				System.err.println("ERROR: Cannot find any device");
 				comm.close();
 				return;
 			}
@@ -169,43 +169,44 @@ public class Tribot
 				if (connected)
 				{
 					details = dev_info[i];
-					System.out.println("connection established");
+					System.out.println("Connection established");
 					break;
 				}
 			}
 			
-			
 			if ( !connected )
 			{	
-				System.err.println("error: cannot establish connection");
+				System.err.println("ERROR: Cannot establish connection");
 				comm.close();
 				return;
 			}
-			
-			// display the device information
-			String conn_type = (details.protocol == USB)? "USB" : "BLUETOOTH";
-			System.out.println("connected");
-			System.out.println("===============================");
-			System.out.println("Con Type: " + conn_type);
-			System.out.println("NXT Name: " + details.name);
-			System.out.println("BuT Addr: " + details.deviceAddress);
-			System.out.println("===============================");
-			
-			NXTCommand cmd = new NXTCommand();
-			cmd.setNXTComm(comm);
-			this.name = name;
-			this.cmd = cmd;
-			bin = comm.getInputStream();
-			bout = comm.getOutputStream();
-			
-			port1 = new RemoteSensorPort(cmd, 0);
-			port2 = new RemoteSensorPort(cmd, 1);
-			port3 = new RemoteSensorPort(cmd, 2);
-			port4 = new RemoteSensorPort(cmd, 3);
+			else 
+			{
+				// display the device information
+				String conn_type = (details.protocol == USB) ? "USB": "BLUETOOTH";
+				System.out.println("Connected");
+				System.out.println("================================================");
+				System.out.println("Connection Type : " + conn_type);
+				System.out.println("NXT Name        : " + details.name);
+				System.out.println("Bluetooth  Addr : " + details.deviceAddress);
+				System.out.println("================================================");
+
+				NXTCommand cmd = new NXTCommand();
+				cmd.setNXTComm(comm);
+				this.name = name;
+				this.cmd = cmd;
+				bin = comm.getInputStream();
+				bout = comm.getOutputStream();
+
+				port1 = new RemoteSensorPort(cmd, 0);
+				port2 = new RemoteSensorPort(cmd, 1);
+				port3 = new RemoteSensorPort(cmd, 2);
+				port4 = new RemoteSensorPort(cmd, 3);
+			}
 		}
 		catch (Exception e)
 		{
-			System.err.println("error: " + e.toString());
+			System.err.println("ERROR: " + e.toString());
 		}
 		
 	}
@@ -226,7 +227,7 @@ public class Tribot
 		}
 		catch (IOException e)
 		{
-			System.err.println("error: failed to disconnetc");
+			System.err.println("ERROR: failed to disconnet");
 		}
 	}
 	
@@ -254,7 +255,7 @@ public class Tribot
 		int front_danger_dist = 26;
 		int wing_danger_dist = 16;
 		int wing_angle = 35;
-		int front_angle = 60;
+		int front_angle = 90;
 		int forward_deviation_correction_time = 2000;
 		int forward_deviation_correction_angle = 20;
 		
@@ -280,12 +281,12 @@ public class Tribot
 			int left_reading = getLeftDist();
 			int right_reading = getRightDist();
 			int front_reading = getFrontDist();
-			
+			System.out.println("LEFT = " + left_reading + " RIGHT = " + right_reading + " FRONT = " + front_reading);
 			if ( front_reading < front_danger_dist )
 			{
 				stop();
 				loggedBackward(speed, 1300, true);
-				
+				System.out.println("FRONT HIT!");
 				if ( left_reading < right_reading )
 				{
 					if ( Math.random() > turning_test_thresh )
@@ -305,7 +306,7 @@ public class Tribot
 			}
 			else
 			{
-				if (left_reading < wing_danger_dist)
+				/*if (left_reading < wing_danger_dist)
 				{
 					loggedTurnangle(-wing_angle);
 					time_count -= time_unit/10;
@@ -316,31 +317,31 @@ public class Tribot
 					loggedTurnangle(wing_angle);
 					time_count -= time_unit/10;
 					changed = true;
-				}	
+				}*/	
 			}
 			
 			// if we are following a line for too long
 			// modify the orientation angle 
-			if ( !changed &&
+			/*if ( !changed &&
 					non_changed_time > forward_deviation_correction_time )
 			{
 				if ( left_reading < right_reading && Math.random() > 0.3 )
 					orientation += forward_deviation_correction_angle;
 				if ( right_reading < left_reading && Math.random() > 0.3 )
 					orientation -= forward_deviation_correction_angle;
-			}
+			}*/
 			
 	
 			// check the angle deviation
 			// otherwise it is easily trapped in some area
-			if ( !changed &&
+			/*if ( !changed &&
 					Math.abs(orientation - guiding_angle) > angle_thresh && 
 					Math.random() > angle_test_thresh )
 			{
 				//turnangle(-orientation);
 				loggedTurnangle(-orientation);
 				changed = true;
-			}
+			}*/
 			
 			// if the speed is modified, fire forward again
 			if ( changed )

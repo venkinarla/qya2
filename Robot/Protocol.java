@@ -99,7 +99,7 @@ public class Protocol
 				break;
 			case ERROR:
 				if (OutError < errorMess.length && OutError >= 0)
-					output = status[ERROR] + ":" + errorMess[OutError];
+					output = status[ERROR] + " : " + errorMess[OutError];
 				else
 					output = status[ERROR];
 				break;
@@ -187,6 +187,8 @@ public class Protocol
 	{
 		if (InMessage == null)
 			return "Unknown Command";
+		else if (InMessage.compareToIgnoreCase("BYPASS") == 0)			// Used to bypass the readln of server when waiting for a command
+			return "USELESS";
 
 		String theInput;
 		theInput = InMessage.trim();
@@ -196,13 +198,13 @@ public class Protocol
 
 		if (CommandList != null && CommandList.size() >= MAXCOMMANDSIZE)
 		{
-			return respon[ERROR] + ": " + errorMess[COMMANDLIST_FULL];
+			return respon[ERROR] + " : " + errorMess[COMMANDLIST_FULL];
 		}
 
 		validCommand = processCommand(command);
-
+		
 		if (!validCommand)
-			return respon[ERROR] + ": " + errorMess[INVALID_INPUT];
+			return respon[ERROR] + " : " + errorMess[INVALID_INPUT];
 
 		// since currently only turning and moving are involved,
 		// if we are turining, then that is not gonna affect the position

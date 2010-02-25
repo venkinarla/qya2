@@ -9,6 +9,7 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.PrintWriter;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -25,6 +26,7 @@ public class LocationPanel extends JPanel
 	private JTextField textStart, textEnd;				// Textfields that display the x, y value			
 	private JButton buttonStart, buttonEnd, buttonGo;	// Buttons
 	private MapControl parentPanel;						// The main map panel
+	public PrintWriter out;							// Output stream used to bypass readln
 
 	public LocationPanel(MapControl InParent)
 	{
@@ -56,6 +58,7 @@ public class LocationPanel extends JPanel
 		{
 			public void mouseClicked( MouseEvent e )
 			{
+				out.println("BYPASS");
 				parentPanel.setMovePath(new Coordinate(startx, starty),
 						new Coordinate(endx, endy));
 				parentPanel.setMove(true);

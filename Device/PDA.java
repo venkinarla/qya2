@@ -144,13 +144,13 @@ public class PDA extends Thread
 					System.out.println("ap data collected from spotter");*/
 				}
 				
-				else if ( in_msg.length() > 3 &&
+				/*else if ( in_msg.length() > 3 &&
 						in_msg.substring(0, 3).equalsIgnoreCase("run"))
 				{
 					lego.runProgram("GrabBall.nxj");
-				}
+				}*/
 				
-				else if ( in_msg.equalsIgnoreCase("getdata") )
+				else if ( in_msg.equalsIgnoreCase("getdata") || in_msg.equalsIgnoreCase("GETDATA"))
 				{
 					if ( lego.isConnected() )
 					{
@@ -168,7 +168,6 @@ public class PDA extends Thread
 					{
 						sout.println("ERROR : Robot is not connected!");
 					}
-					
 					continue;
 				}
 
@@ -191,14 +190,14 @@ public class PDA extends Thread
 			}
 			catch (Exception e)
 			{
-				System.err.println("server error: " + e.toString());
+				System.err.println("Server error: " + e.toString());
 				break;
 			}
 		}
 
 		// close the connection of both the robot and the PC server
 		disconnectServer();
-		System.out.println("server closed");
+		System.out.println("Server Closed!");
 	}
 
 	// execute the command in automated mode

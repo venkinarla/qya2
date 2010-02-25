@@ -483,7 +483,7 @@ public class UI_Server extends JPanel implements MapControl
 
 			in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
 			out = new PrintWriter(clientSock.getOutputStream(), true);
-
+			LapLocPanel.out = out;
 			connected = true;
 			enableALL();
 
@@ -515,8 +515,9 @@ public class UI_Server extends JPanel implements MapControl
 				try
 				{
 					InMessage = in.readLine();
-					if ( InMessage.substring(0, 5).compareToIgnoreCase("Front") == 0 ||
-						 InMessage.substring(0, 5).compareToIgnoreCase("ERROR") == 0
+					String [] input = InMessage.split(" ");
+					if ( input[0].compareToIgnoreCase("Front") == 0 ||
+						 input[0].compareToIgnoreCase("ERROR") == 0
 						)
 					{
 						printf(InMessage);
@@ -579,7 +580,7 @@ public class UI_Server extends JPanel implements MapControl
 					}
 					else if ( InMessage.compareToIgnoreCase("OK") == 0)
 					{
-						printf("Robot Fucking Turned!");
+						//printf("Robot Fucking Turned!");
 					}
 					// while a sequence of command is finished
 					else if ( InMessage.compareToIgnoreCase("FINISHED") == 0 )
@@ -590,8 +591,10 @@ public class UI_Server extends JPanel implements MapControl
 					
 					// get all the sensors and motors readings from the device
 					// and log the current state of the robot into the log file
-					else if ( InMessage.length() > 7 && 
-							InMessage.substring(0, 7).equalsIgnoreCase("getdata") )
+					else if ( InMessage.length() > 5 && 
+							  InMessage.substring(0, 5).equalsIgnoreCase("FRONT") ||
+							  InMessage.substring(0, 5).equalsIgnoreCase("ERROR")
+							)
 					{
 						//System.out.println("AT getdata");
 						// log the state data

@@ -17,11 +17,12 @@ import lejos.localization.*;
 
 import FileIO.Logging;
 import Robot.Protocol;
+import State.Coordinate;
 
 // implement the traditional Lego tribot
 public class Tribot
 {
-	// ************** data memeber *****************
+	// ************** data member *****************
 	protected String name;
 	protected String dev_addr;
 	protected boolean connected = false;
@@ -127,22 +128,24 @@ public class Tribot
 		
 		if (!connected)
 			connect(name);
-		
-		wheel_diam = 16.0f;
-		track_width = 5.6f;
+		if (connected)
+		{
+			wheel_diam = 16.0f;
+			track_width = 5.6f;
 
-		left_motor = new RemoteMotor(cmd, portA);
-		right_motor = new RemoteMotor(cmd, portB);
-		aux_motor = new RemoteMotor(cmd, portC);
+			left_motor = new RemoteMotor(cmd, portA);
+			right_motor = new RemoteMotor(cmd, portB);
+			aux_motor = new RemoteMotor(cmd, portC);
 		
-		left_motor.setSpeed(720); 					//MAX speed = 720
-		right_motor.setSpeed(720);
-		//aux_motor.setSpeed(300);
+			left_motor.setSpeed(400); 					//MAX speed = 720
+			right_motor.setSpeed(400);
+			//aux_motor.setSpeed(300);
 
-		left_sonar = new UltrasonicSensor(port1);
-		right_sonar = new UltrasonicSensor(port2);
-		front_sonar = new UltrasonicSensor(port3);
-		front_light = new LightSensor(port4);
+			left_sonar = new UltrasonicSensor(port1);
+			right_sonar = new UltrasonicSensor(port2);
+			front_sonar = new UltrasonicSensor(port3);
+			front_light = new LightSensor(port4);
+		}
 	}
 	
 	// connect to a tribot
@@ -246,66 +249,106 @@ public class Tribot
 	// going forward
 	public void forward(int speed, int duration)
 	{
-		// loop number checker
-		int time_count = 0;
-		int time_unit = 10;
+		int time_count = 0;				// Loop counter
+		int time_unit = 10;				// The amount of time increased for every loop
+		int front_danger_dist = 40;		// The front danger distance for the robot 
+		int wing_danger_dist = 50;		// The side danger distance for the robot
+		int turn_angle = (90 + Coordinate.correctangle);			// The angle turned when hit something
+		int turnto = -1;				// The direction that the robot turn to when hit something. 0 = left, 1 = right.
 		
-		// hard parameters that should be tuned by hand
-		// we should push these parameters to the extreme
-		int front_danger_dist = 26;
-		int wing_danger_dist = 16;
-		int wing_angle = 35;
-		int front_angle = 90;
-		int forward_deviation_correction_time = 2000;
-		int forward_deviation_correction_angle = 20;
+		//int wing_angle = 35;
+		//int forward_deviation_correction_time = 2000;
+		//int forward_deviation_correction_angle = 20;
 		
 		// soft parameters that could be learned by the machine
-		int angle_thresh = 40;
-		double angle_test_thresh = 0.29;
-		double turning_test_thresh = 0.13;
-		
+		//int angle_thresh = 40;
+		//double angle_test_thresh = 0.29;
+		//double turning_test_thresh = 0.13;
 		// recording changing issues
-		int non_changed_time = 0;
+		//int non_changed_time = 0;
 		
-		setSpeed(speed);
-
-		left_motor.forward();
-		right_motor.forward();
+		setSpeed(speed);				// Setup the speed of both motor
+		//setLeftSpeed(speed-40);
+		right_motor.forward();			// Tell the right motor move forward
+		left_motor.forward();			// Tell the left motor move forward
+										// PS. If in high speed (eg. >450 ) , robot will move to the left because the robot motor move first.
+		
+		int old_left_reading = -1;		// The previous left wing reading
+		int old_right_reading = -1;		// The previous right wing reading
 		
 		while ( time_count < duration )
-		{	
-			// the change flag which indicates whether
-			// there is any direction changes in this round
-			boolean changed = false;
+		{
+																//--------------------------------------
+			boolean changed = false;							// This indicate if the robot has change the direction because of obstacle
 			
-			int left_reading = getLeftDist();
+			int left_reading = getLeftDist();					// Get all the distance reading
 			int right_reading = getRightDist();
 			int front_reading = getFrontDist();
-			System.out.println("LEFT = " + left_reading + " RIGHT = " + right_reading + " FRONT = " + front_reading);
-			if ( front_reading < front_danger_dist )
+			System.out.println(getLeftSpeed() + " " + getRightSpeed() + " " + time_count + " " + time_unit);
+																//--------------------------------------
+			if ( front_reading <= front_danger_dist )			// if the robot is about to hit something
 			{
-				stop();
-				loggedBackward(speed, 1300, true);
-				System.out.println("FRONT HIT!");
-				if ( left_reading < right_reading )
+				System.out.println("FRONT HIT = " + front_reading + " HIT TIME = " + time_count + " dur = " + duration);
+				if (time_count + time_unit*2 >= duration)			// Ignore the last bit of distance if it is about the end of the duration
 				{
-					if ( Math.random() > turning_test_thresh )
-						loggedTurnangle(-front_angle);
-					else
-						loggedTurnangle(front_angle);
+					System.out.println("Chop end");
+					break;										// To bypass some of the grid with the stupid locker
 				}
-				else
+				stop();											// Stop the robot
+				if ( left_reading < right_reading )				// if the left side of the robot is nearer to the wall than the right side
 				{
-					if ( Math.random() > turning_test_thresh )
-						loggedTurnangle(front_angle);
-					else
-						loggedTurnangle(-front_angle);
+						loggedTurnangle(turn_angle);			// Turn the robot to the right
+						turnto = 1;								// Record the turned direction. 1 = right
+						//System.out.println("TURN TO RIGHT");
 				}
-				time_count -= time_unit/5;
-				changed = true;
-			}
-			else
+				else											// if the right side of the robot is nearer to the wall than the left side
+				{
+						loggedTurnangle(-turn_angle);			// Turn the robot to the left
+						turnto = 0;								// Record the turned direction. 1 = right
+						//System.out.println("TURN TO LEFT");
+				}
+				changed = true;									// Mark the robot is turned
+			}													//--------------------------------------
+			else if ( (old_left_reading != -1) &&				// else if the robot is near to one side of the wall  
+					  (old_right_reading != -1) &&
+					  ((left_reading < wing_danger_dist) ||
+					  (right_reading < wing_danger_dist))
+					)
 			{
+				if ( (old_left_reading - left_reading) > 3  && 	// if robot moving toward the left side
+					 (old_left_reading - left_reading) < 50
+					)
+				{
+					changespeedforward(400,150);				// Slow down the right motor to correct the movement
+					wait(200);
+					System.out.println("LEFT CORRECT");
+				}
+				else if ( (old_right_reading - right_reading) > 3 && 	// if robot moving toward the right side 
+						  (old_right_reading - right_reading) < 50
+						)
+				{
+					changespeedforward(150,400);				// Slow down the left motor to correct the movement
+					wait(200);
+					System.out.println("RIGHT CORRECT");
+				}
+				else if ( (old_left_reading > left_reading) &&
+							(left_reading < right_reading)
+						) 
+				{
+					changespeedforward(400,380);
+					wait(10);
+					System.out.println("LEFT SMALL CORRECT");
+				}
+				else if ( (old_right_reading > right_reading) && 
+							(left_reading < right_reading)
+						)
+				{
+					changespeedforward(380,400);
+					wait(10);
+					System.out.println("RIGHT SAMLL CORRECT");
+				}
+			}													//--------------------------------------
+			System.out.println(old_left_reading +" "+ old_right_reading +" "+ left_reading +" "+ right_reading + "***");
 				/*if (left_reading < wing_danger_dist)
 				{
 					loggedTurnangle(-wing_angle);
@@ -318,7 +361,7 @@ public class Tribot
 					time_count -= time_unit/10;
 					changed = true;
 				}*/	
-			}
+			//}
 			
 			// if we are following a line for too long
 			// modify the orientation angle 
@@ -342,27 +385,96 @@ public class Tribot
 				loggedTurnangle(-orientation);
 				changed = true;
 			}*/
-			
-			// if the speed is modified, fire forward again
-			if ( changed )
+															//--------------------------------------
+			if ( changed )									// if the direction of the robot is changed
 			{
-				if ( time_count > 0 )
+				/*if ( time_count > 0 )
 					Logging.logActionData( 
-						new String[]{"MOVE " + speed + " " + non_changed_time });
-				forward(speed);
-				wait(time_unit);
-				non_changed_time = 0;
+						new String[]{"MOVE " + speed + " " + non_changed_time });*/
+				old_left_reading = getLeftDist();			// Get the left reading just after turned		
+				old_right_reading = getRightDist();			// Get the right reading just after turned
+				forward(speed);								// Move the robot forward
+				wait(200);									// Allow the robot to move for at least 0.2 second
+				left_reading = getLeftDist();				// Get the new left reading after movement
+				right_reading = getRightDist();				// Get the new right reading after movement
+				front_reading = getFrontDist();				// Get the front reading after movement
+				if (turnto == 1)							// if turned to right
+				{
+					while (left_reading <= 40)				//   
+					{
+						forward(speed);
+						if (Math.abs(left_reading - old_left_reading) > 3)
+						{
+							changespeedforward(300,260);
+						}
+						wait(200);
+						old_left_reading = left_reading;
+						left_reading = getLeftDist();
+						front_reading = getFrontDist();
+					}
+					loggedTurnangle(-turn_angle);
+					forward(speed);
+				}
+				else if (turnto == 0)					// if turned to left
+				{
+					while (right_reading <= 40)
+					{
+						forward(speed);
+						/*if ( front_reading <= 20 )
+						{
+							stop();
+							turnto = 1;
+							loggedTurnangle(-turn_angle*2);
+							old_left_reading = getLeftDist();
+							forward(speed);
+							wait(200);
+							left_reading = getLeftDist();
+							while (left_reading <= 40)				//   
+							{
+								if (Math.abs(left_reading - old_left_reading) > 3)
+								{
+									changespeedforward(400,380);
+								}
+								wait(200);
+								old_left_reading = left_reading;
+								left_reading = getLeftDist();
+								front_reading = getFrontDist();
+							}
+							break;
+						}						
+						else*/ if (Math.abs(right_reading - old_right_reading) > 3)
+						{
+							changespeedforward(260,300);
+						}
+						wait(200);
+						old_right_reading = right_reading;
+						right_reading = getRightDist();
+						front_reading = getFrontDist();
+					}
+					if (turnto == 0)
+						loggedTurnangle(turn_angle);
+					else
+						loggedTurnangle(-turn_angle);
+					forward(speed);
+					
+				}
+				changed = false;
+				turnto = -1;
+				old_left_reading = -1;
+				old_right_reading = -1;
+				//non_changed_time = 0;
 			}
 			else
 			{
+				forward(speed);
+				old_left_reading = left_reading;
+				old_right_reading = right_reading;
 				wait(time_unit);
-				non_changed_time += time_unit;
+				//non_changed_time += time_unit;
 			}
-			
 			time_count += time_unit;
 		}
 		
-		// stop after finishing
 		stop();
 	}
 	
@@ -408,8 +520,8 @@ public class Tribot
 	// the angle turning function called by the device
 	public void turnangle( int angle )
 	{
-		turnangle(100, angle);
-		//wait(1000);
+		turnangle(300, angle);
+		//wait(3000);
 		orientation += angle;
 	}
 	
@@ -419,16 +531,8 @@ public class Tribot
 	{
 		setSpeed(Math.abs(speed));
 		
-		if ( angle > 0 )
-		{
-			left_motor.rotate(-angle * 2, true);
-			right_motor.rotate(angle * 2, true);
-		}
-		else
-		{
-			left_motor.rotate(-angle * 2, true);
-			right_motor.rotate(angle * 2, true);
-		}
+		left_motor.rotate(angle * 2, true);
+		right_motor.rotate(-angle * 2, true);
 	}
 	
 	
@@ -509,14 +613,31 @@ public class Tribot
 		setLeftSpeed(speed*left_reversed);
 		setRightSpeed(speed*right_reversed);
 		
-		if ( left_reversed == 1 )
-			left_motor.forward();
-		else
-			left_motor.backward();
 		if ( right_reversed == 1 )
 			right_motor.forward();
 		else
 			right_motor.backward();
+		
+		if ( left_reversed == 1 )
+			left_motor.forward();
+		else
+			left_motor.backward();
+	}
+	
+	public void changespeedforward(int leftspeed, int rightspeed)
+	{
+		setLeftSpeed(leftspeed*left_reversed);
+		setRightSpeed(rightspeed*right_reversed);
+		
+		if ( right_reversed == 1 )
+			right_motor.forward();
+		else
+			right_motor.backward();
+		
+		if ( left_reversed == 1 )
+			left_motor.forward();
+		else
+			left_motor.backward();
 	}
 	
 	public void backward(int speed)
@@ -676,7 +797,7 @@ public class Tribot
 		}
 		catch (Exception e)
 		{
-			System.err.println("[Tribot] error: cannot get voltage " + e.toString());
+			System.err.println("Error: cannot get voltage " + e.toString());
 			return -1;
 		}
 	}

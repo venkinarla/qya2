@@ -26,7 +26,7 @@ public class LocationPanel extends JPanel
 	private JTextField textStart, textEnd;				// Textfields that display the x, y value			
 	private JButton buttonStart, buttonEnd, buttonGo;	// Buttons
 	private MapControl parentPanel;						// The main map panel
-	public PrintWriter out;							// Output stream used to bypass readln
+	public PrintWriter out;								// Output stream used to bypass readln
 
 	public LocationPanel(MapControl InParent)
 	{

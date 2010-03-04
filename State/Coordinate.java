@@ -14,6 +14,7 @@ import java.util.*;
 // used for something
 public class Coordinate
 {
+	public static final int correctangle = 0;
 	public int x, y;
 	
 	// the grid data files
@@ -128,41 +129,42 @@ public class Coordinate
 	public static int transAngle( int init_angle, int goal_angle )
 	// Return the angle that used to turn the robot. 
 	{	
+		// PS. Extra 7 degree due to the carpet on 3rd floor.
 		if (init_angle == 0)
 		{
 			if (goal_angle == 90)
-				return 90;
+				return (90+correctangle);
 			else if (goal_angle == 180)
-				return 180;
+				return (180+correctangle*2);
 			else if (goal_angle == -90)
-				return -90;
+				return -(90+correctangle);
 		}
 		else if (init_angle == 90)
 		{
 			if (goal_angle == 0)
-				return -90;
+				return -(90+correctangle);
 			else if (goal_angle == 180)
-				return 90;
+				return (90+correctangle);
 			else if (goal_angle == -90)
-				return 180;
+				return (180+correctangle*2);
 		}
 		else if (init_angle == 180)
 		{
 			if (goal_angle == 0)
-				return 180;
+				return (180+correctangle*2);
 			else if (goal_angle == 90)
-				return -90;
+				return -(90+correctangle);
 			else if (goal_angle == -90)
-				return 90;
+				return (90+correctangle);
 		}
 		else if (init_angle == -90)
 		{
 			if (goal_angle == 0)
-				return 90;
+				return (90+correctangle);
 			else if (goal_angle == 90)
-				return 180;
+				return (180+correctangle*2);
 			else if (goal_angle == 180)
-				return -90;
+				return -(90+correctangle);
 		}
 		return 999;
 	}

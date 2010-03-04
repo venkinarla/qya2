@@ -842,7 +842,7 @@ public class UI_Server extends JPanel implements MapControl
 	public static int stateTransCommand(Integer meta1, Integer meta2, Integer angle, PrintWriter out)
 	{
 		String command1 = null;				// Command to turn the robot
-		String command2 = "MOVE 200 10000"; // Command to move forward
+		String command2 = "MOVE 400 70"; 	// Command to move forward. [MOVE 450 10] about 25 cm.
 		
 		Integer[] children = Coordinate.meta_grid_graph.get(meta1); // Get the neighbor grid number of the current grid
 		

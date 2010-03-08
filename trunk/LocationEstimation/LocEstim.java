@@ -130,7 +130,7 @@ public class LocEstim {
 				}
 			}
 		}
-
+		
 		// vote for a result in a uniform manner
 		Map<Integer, Integer> vote_count = new HashMap<Integer, Integer>();
 		for (int i = 0; i < candidate.size(); ++i) {
@@ -153,11 +153,23 @@ public class LocEstim {
 
 		return best_meta;
 	}
-	
-	//utility
-	public void printArray(){
-		
+
+	// Select the best-grid by averaged dataset
+	public int avg_estimate( SignalVector query, Vector<SignalVector> avgDataset){
+		int best_grid = -1;
+		Double best_dist = 999.0;
+		Double curr_dist = 999.0;
+		for( int i=0; i<avgDataset.size(); i++ ){
+			curr_dist = SignalVector.distEuclidean(query, avgDataset.elementAt(i));
+			if( curr_dist < best_dist ){
+				best_dist = curr_dist;
+				best_grid = i+1;
+			}
+		}
+		return best_grid;	
 	}
+	
+	
 	public static void main( String[] args )
 	{			
 		// nothing here currently
@@ -203,7 +215,10 @@ public class LocEstim {
 		sv = new SignalVector(ss);
 		System.out.println("Estimating...");
 		int bestGrid = locEst.knn_estimate(sv, db.sig_vec_base, 5);
-		System.out.println("Best Grid ="+bestGrid);
+		int bestGrid2 = locEst.knn_estimate_dataset2(sv, db.sig_vec_base_v, 5);
+		int bestGrid3 = locEst.avg_estimate(sv, db.sig_vec_base_avg);
+		System.out.println("Best Grid ="+bestGrid + "\tNew Best Grid ="+bestGrid2 +"\tAvg Best Grid ="+bestGrid3);
+		
 		
 	}
 }

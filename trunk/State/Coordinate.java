@@ -25,7 +25,7 @@ public class Coordinate
 		"src/dataset/meta_grid_graph.mgh";  // .mgh defines the relationship between each pairs of meta grids
 	
 	// map from meta grid to original small coordinate
-	public static Map<Integer, Coordinate[]> meta_grid;
+	public static Map<Integer, Coordinate> meta_grid;
 	// the graph representing the relationship between each meta grid
 	public static Map<Integer, Integer[]> meta_grid_graph;
 
@@ -33,7 +33,7 @@ public class Coordinate
 	public static void initMetaGrid()
 	{
 		// get the data from file
-		meta_grid = new HashMap<Integer, Coordinate[]>();
+		meta_grid = new HashMap<Integer, Coordinate>();
 		BufferedReader reader = null;
 		System.out.println("loading meta grid spec...");
 		try
@@ -60,9 +60,9 @@ public class Coordinate
 				else
 				{
 					int grid_num = Integer.parseInt(input);
-					Coordinate[] coord_list = new Coordinate[2];
-					coord_list[0] = new Coordinate(reader.readLine());
-					coord_list[1] = new Coordinate(reader.readLine());
+					Coordinate coord_list = new Coordinate(reader.readLine());
+					//coord_list[0] = new Coordinate(reader.readLine());
+					//coord_list[1] = new Coordinate(reader.readLine());
 					meta_grid.put(grid_num, coord_list);
 					input = reader.readLine();
 				}
@@ -322,11 +322,13 @@ public class Coordinate
 
 		for (int grid_num : meta_grid.keySet())
 		{
-			Coordinate[] boundary = meta_grid.get(grid_num);
-			if (coord.inRect(boundary[0], boundary[1]))
+			Coordinate boundary = meta_grid.get(grid_num);
+			/*if (coord.inRect(boundary[0], boundary[1]))
 			{
 				return grid_num;
-			}
+			}*/
+			if( boundary.x == coord.x && boundary.y == coord.y)
+				return grid_num;
 		}
 		return -1;
 	}
@@ -345,12 +347,12 @@ public class Coordinate
 	public static Coordinate getRandCoord( Integer meta_num )
 	{
 		Coordinate coord = new Coordinate();
-		Coordinate[] boundary = meta_grid.get(meta_num);
-		int x_dist = boundary[1].x - boundary[0].x;
-		int y_dist = boundary[1].y - boundary[0].y;
+		Coordinate boundary = meta_grid.get(meta_num);
+		//int x_dist = boundary[1].x - boundary[0].x;
+		//int y_dist = boundary[1].y - boundary[0].y;
 		
-		coord.x = boundary[0].x + (int)(x_dist * Math.random());
-		coord.y = boundary[0].y + (int)(y_dist * Math.random());
+		//coord.x = boundary[0].x + (int)(x_dist * Math.random());
+		//coord.y = boundary[0].y + (int)(y_dist * Math.random());
   		
 		return coord;
 	}

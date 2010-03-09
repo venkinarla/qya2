@@ -90,7 +90,7 @@ public class MetaGridMgrGeneration {
 		DataOutputStream dos;
 		Integer grid_count = 0;
 		try {
-			File file = new File("src/dataset/meta_grid_mgr_test");
+			File file = new File("src/dataset/meta_grid.mgr");
 			fos = new FileOutputStream(file);
 			dos = new DataOutputStream(fos);
 			dos.writeBytes("%This meta file indicate the mapping between the grids on map and coordinates\n");

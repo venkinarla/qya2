@@ -320,6 +320,7 @@ public class Coordinate
 		if (meta_grid == null)
 			initMetaGrid();
 
+		System.out.println(coord.x +" "+ coord.y);
 		for (int grid_num : meta_grid.keySet())
 		{
 			Coordinate boundary = meta_grid.get(grid_num);
@@ -327,6 +328,7 @@ public class Coordinate
 			{
 				return grid_num;
 			}*/
+			System.out.println(boundary.x +" "+ boundary.y);
 			if( boundary.x == coord.x && boundary.y == coord.y)
 				return grid_num;
 		}
@@ -355,6 +357,10 @@ public class Coordinate
 		//coord.y = boundary[0].y + (int)(y_dist * Math.random());
   		
 		return coord;
+	}
+	// get the corresponding coordinate from  a meta grid
+	public static Coordinate getCoord( Integer meta_num ){
+		return meta_grid.get(meta_num);
 	}
 
 	public Coordinate()
@@ -430,7 +436,7 @@ public class Coordinate
 	
 	public static void main( String[] args )
 	{
-		String coord_str = "x = 18, y = 32";
+		String coord_str = "x = 39, y = 11";
 		Coordinate coord = new Coordinate(coord_str);
 
 		System.out.println(coord_str);
@@ -438,7 +444,6 @@ public class Coordinate
 		System.out.println(coord.x + " " + coord.y);
 
 		Coordinate.initMetaGrid();
-		
 		Coordinate.search(5, 15);
 		System.out.println("Get Grid Num :"+Coordinate.getGridNum(coord));
 	}

@@ -650,8 +650,8 @@ public class UI_Server extends JPanel implements MapControl
 						{
 							int next_meta_state = meta_path[++meta_idx];
 							// display the current position on the map
-							Coordinate curr_path_state = Coordinate.getRandCoord(curr_meta_state);
-							printf( "Robot current position: " + curr_meta_state);
+							Coordinate curr_path_state = Coordinate.getCoord(curr_meta_state);
+							//printf( "Robot current position: " + curr_meta_state);
 							PathMap.setRobxy(curr_path_state.x, curr_path_state.y);
 							PathMap.repaint();
 							

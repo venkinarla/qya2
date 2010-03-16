@@ -203,15 +203,14 @@ public class Protocol
 
 		validCommand = processCommand(command);
 		
-		if (!validCommand)
-			return respon[ERROR] + " : " + errorMess[INVALID_INPUT];
-
-		// since currently only turning and moving are involved,
-		// if we are turining, then that is not gonna affect the position
-		if (command[0].substring(0, 4).equalsIgnoreCase("MOVE"))
-			return respon[FINISHED];
-		else
-			return respon[OK];
+		if (validCommand)
+		{
+			if (command[0].substring(0, 4).equalsIgnoreCase("MOVE"))
+				return respon[FINISHED];
+			else if(command[0].substring(0, 9).equalsIgnoreCase("TURNANGLE"))
+				return respon[OK];
+		}
+		return respon[ERROR] + " : " + errorMess[INVALID_INPUT];
 	}
 
 	public int GetCommandListSize()

@@ -170,7 +170,32 @@ public class PDA extends Thread
 					}
 					continue;
 				}
-
+				else if ( in_msg.equalsIgnoreCase("isobstacle") || in_msg.equalsIgnoreCase("ISOBSTACLE"))
+				{
+					int front = lego.getFrontDist();
+					int left = lego.getLeftDist();
+					int right = lego.getRightDist();
+					
+					if ( lego.isConnected() )
+					{
+						sout.println(
+							"Front : [" + front + "]  " +
+							"Left : [" + left + "]  " + 
+							"Right : [" + right + "]"
+						);
+						if (front <= 40)
+							sout.println("Warning : Obstacle detected at the FRONT of the robot!");
+						if (left <= 40)
+							sout.println("Warning : Obstacle detected at the LEFT side of the robot!");
+						if (right <= 40)
+							sout.println("Warning : Obstacle detected at the RIGHT side of the robot!");
+					}
+					else
+					{
+						sout.println("ERROR : Robot is not connected!");
+					}
+					continue;					
+				}
 				else
 				{
 					// running the moving commands
@@ -254,7 +279,7 @@ public class PDA extends Thread
 					lego.loggedTurnangle(comm_protocol.GetValue1());
 					break;
 				case Protocol.ISOBSTACLE:
-					lego.runProgram("GrabBall.nxj");
+					//lego.runProgram("GrabBall.nxj");
 					// do nothing now
 					//System.out.println("go and get the ball!");
 					break;
@@ -303,6 +328,7 @@ public class PDA extends Thread
 				System.out.println("Initializing PC Server connection...");
 
 				server_socket = new Socket(IP, port);
+				//System.out.println(IP + " " + port);
 				sin = new BufferedReader(new InputStreamReader(server_socket
 						.getInputStream()));
 				sout = new PrintWriter(server_socket.getOutputStream(), true);
@@ -446,6 +472,19 @@ public class PDA extends Thread
 		}
 	}*/
 	
+	/*
+	 * Set the IP retrieved from the UI pannel to the PDA
+	 */
+	public void setIP(String IP){
+		this.IP = IP;
+	}
+	
+	/*
+	 * Set the Port retrieved from the UI pannel to the PDA
+	 */
+	public void setPort(int port){
+		this.port = port;
+	}
 	
 	public static void main(String[] args)
 	{
@@ -453,3 +492,4 @@ public class PDA extends Thread
 		pda.start();
 	}
 }
+

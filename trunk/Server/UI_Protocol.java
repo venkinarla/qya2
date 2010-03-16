@@ -155,41 +155,34 @@ public class UI_Protocol {
 	{
 		if (InMessage == null) return "Unknown Command";
 		
-		String theInput;
-		theInput = InMessage.trim();
-		String []command=theInput.split(" ");
-		String 	theOutput = null;	
-		boolean validCommand=true;
+		String [] command = InMessage.split(" ");	
+		//boolean validCommand = true;
+		//validCommand = processCommand(command); 		
+		//if (!validCommand) return "NA"; 
 		
-		validCommand = processCommand(command); 		
-		if (!validCommand) return "NA"; 
-		
-		if (command[0].equalsIgnoreCase("AP:"))
+		/*if (command[0].equalsIgnoreCase("AP:"))
 		{
 			if (command[1].equalsIgnoreCase("END"))
 				return "END";
 			else
 				return "AP";
-		}
+		}*/
 		
 		// when a sequence of commands is finished
 		// upon hearing this, we give the moving approval
-		if ( command[0].equalsIgnoreCase("FINISHED") )
+		if ( command[0].equalsIgnoreCase("ERROR") )
 		{
-			return "FINISHED";
+			return "ERROR";
 		}
-		
-		if (command[0].equalsIgnoreCase("OBJ:"))
+		else if (command[0].equalsIgnoreCase("FINISHED"))
 		{
-			return "OBJ";
+			return "Robot Movement Finished";
 		}
-		
-		if (command[0].equalsIgnoreCase("HELP"))
+		else if (command[0].equalsIgnoreCase("OK"))
 		{
-			return "HELP";
+			return "Robot Orientation Changed";
 		}
-		
-		else return "";
+		else return "Invalid Command";
 	}
 	
 	public SignalStrength GetSignal()

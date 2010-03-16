@@ -99,16 +99,16 @@ public class GUI_AutoCtrlPanel extends JPanel
 		gc.anchor = GridBagConstraints.EAST;
 		gc.fill = GridBagConstraints.BOTH;
 		gc.gridwidth = GridBagConstraints.LINE_START;
-		ConnectPanel.add(new JLabel("Server"));
+		ConnectPanel.add(new JLabel("Server "));
 		ConnectPanel.add(connectButton, gc);
-		ConnectPanel.add(new JLabel("scan"));
-		gc.gridwidth = GridBagConstraints.LINE_END;
+		//ConnectPanel.add(new JLabel("scan"));
+		//gc.gridwidth = GridBagConstraints.LINE_END;
 		
 		
 		gc.gridwidth = GridBagConstraints.LINE_START;
-		ConnectPanel.add(new JLabel("Port:"), gc);
+		ConnectPanel.add(new JLabel(" Port: "), gc);
 		ConnectPanel.add(TextPort, gc);
-		ConnectPanel.add(new JLabel("IP:"), gc);
+		ConnectPanel.add(new JLabel(" IP: "), gc);
 		gc.gridwidth = GridBagConstraints.LINE_END;
 		ConnectPanel.add(TextIP, gc);
 		
@@ -155,7 +155,8 @@ public class GUI_AutoCtrlPanel extends JPanel
 				{
 					public void run()
 					{
-						
+						pda_control.setIP(TextIP.getText());
+						pda_control.setPort(Integer.parseInt(TextPort.getText()));
 						if ( !ServerConnected )
 						{
 							ServerConnected = true;

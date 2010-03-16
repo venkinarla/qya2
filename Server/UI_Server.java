@@ -295,14 +295,14 @@ public class UI_Server extends JPanel implements MapControl
 		Server_CtrPanel.add(LapLocPanel, gc);
 
 		gc0.gridwidth = GridBagConstraints.RELATIVE;
-		gc0.weightx = 19;
-		gc0.weighty = 0;
-		add(Mapscroll, gc0);
-
-		gc0.gridwidth = GridBagConstraints.REMAINDER;
 		gc0.weightx = 1;
 		gc0.weighty = 0;
 		add(Server_CtrPanel, gc0);
+
+		gc0.gridwidth = GridBagConstraints.REMAINDER;
+		gc0.weightx = 19;
+		gc0.weighty = 0;
+		add(Mapscroll, gc0);
 
 		gc0.weightx = 20;
 		gc0.weighty = 1;
@@ -347,11 +347,11 @@ public class UI_Server extends JPanel implements MapControl
 				PathMap.repaint();
 				if (use_remote_device)
 				{
-					printf("use remote device to control the robot");
+					printf("Using remote device to control the robot");
 				}
 				else
 				{
-					printf("use local server to control the robot");
+					printf("Using local server to control the robot");
 					lego.configure();
 				}
 				
@@ -371,8 +371,8 @@ public class UI_Server extends JPanel implements MapControl
 						}
 					};
 					mythread.start();
-					printf("Opening Port:" + String.valueOf(port));
-					printf("Please Wait....");
+					printf("Opening Port: " + String.valueOf(port));
+					printf("Please Wait ....");
 				}
 				else
 					printf("Please enter Port number");
@@ -409,12 +409,11 @@ public class UI_Server extends JPanel implements MapControl
 		{
 			//System.out.println("asdfkjhakjfshgkadf " + Message);
 			printf("Command List");
-			printf("1. STOP                                     ( Stop the robot )");
+			printf("1. HELP                                                ( Display this commnad list)");
 			printf("2. MOVE [speed] [duration]                  ( Move the robot forward [MAX Speed = 720] )");
-			printf("3. TURN [leftspeed] [rightspeed] [duration] ( Turn the robot by duration )");
-			printf("4. TURNANGLE [angle]                        ( Turn the robot by angle )");
-			printf("5. GETAP                                    ( Robot will scan and return signal strength )");
-			printf("6. ISOBSTACLE				                ( Detect if there is obstacles around the robot )");
+			printf("3. TURNANGLE [angle]                        ( Turn the robot by angle [Positive angle = clockwise])");
+			printf("4. GETAP                                               ( Robot will scan and return signal strength )");
+			printf("5. ISOBSTACLE                           ( Detect if there is obstacles around the robot )");
 			//TODO
 		}
 		else if (connected)
@@ -458,7 +457,7 @@ public class UI_Server extends JPanel implements MapControl
 		myUI.setSize(1024, 768);
 		myUI.add(new UI_Server(new Tribot()));
 		myUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		myUI.show();
+		myUI.show();		
 	}
 
 
@@ -472,14 +471,16 @@ public class UI_Server extends JPanel implements MapControl
 			serverSock = new ServerSocket(port);
 			clientSock = serverSock.accept();
 			TextDisplayField.requestFocusInWindow();
-
-			printf("Client: " + clientSock.getInetAddress().getHostName());
-			printf("Client: " + clientSock.getInetAddress().getHostAddress());
+			printf("=======================");
+			printf("A client has successfully connected!");
+			printf("Client Name: " + clientSock.getInetAddress().getHostName());
+			printf("Client IP: " + clientSock.getInetAddress().getHostAddress());
 			printf("Client Port: " + clientSock.getPort());
-
+			printf("=======================");
 			TextDisplayField.requestFocusInWindow();
-
-			clientList.addItem(getName());
+			TextInputField.requestFocusInWindow();
+			
+			clientList.addItem(clientSock.getInetAddress().getHostName());
 
 			in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
 			out = new PrintWriter(clientSock.getOutputStream(), true);
@@ -512,24 +513,15 @@ public class UI_Server extends JPanel implements MapControl
 			// wait for the starting signal
 			while ( !can_move )
 			{
-				try
-				{
 					InMessage = in.readLine();
 					String [] input = InMessage.split(" ");
 					if ( input[0].compareToIgnoreCase("Front") == 0 ||
-						 input[0].compareToIgnoreCase("ERROR") == 0
+						 input[0].compareToIgnoreCase("ERROR") == 0 ||
+						 input[0].compareToIgnoreCase("Warning") == 0
 						)
 					{
 						printf(InMessage);
 					}
-					Thread.sleep(500);
-				}
-				catch (InterruptedException e)
-				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				// wait for the signal
 			}
 			while (true)
 			{	
@@ -651,7 +643,6 @@ public class UI_Server extends JPanel implements MapControl
 							int next_meta_state = meta_path[++meta_idx];
 							// display the current position on the map
 							Coordinate curr_path_state = Coordinate.getCoord(curr_meta_state);
-							//printf( "Robot current position: " + curr_meta_state);
 							PathMap.setRobxy(curr_path_state.x, curr_path_state.y);
 							PathMap.repaint();
 							
@@ -668,6 +659,7 @@ public class UI_Server extends JPanel implements MapControl
 								case -90	: 	printf("Robot current orientation: " + curr_angle + " (Facing West)");
 												break;							
 							}
+							printf( "Robot current position: " + curr_meta_state);
 						}
 						else
 						{
@@ -682,11 +674,35 @@ public class UI_Server extends JPanel implements MapControl
 					}
 					
 					OutMessage = comProtocol.processInput(InMessage);
-					if (OutMessage.compareToIgnoreCase("AP") == 0)
+					if (InMessage.compareToIgnoreCase("OK") == 0)
+					{
+						printf("From client " + clientSock.getInetAddress().getHostName() + " : " + InMessage + " : " + OutMessage);
+					}
+					else if (InMessage.compareToIgnoreCase("FINISHED") == 0)
+					{
+						printf("From client " + clientSock.getInetAddress().getHostName() + " : " + InMessage + " : " + OutMessage);
+					}
+					else if (OutMessage.compareToIgnoreCase("ERROR") == 0 || OutMessage.compareToIgnoreCase("Front") == 0)
+					{
+						printf("From client " + clientSock.getInetAddress().getHostName() + " : " + InMessage);
+					}
+					/*if (OutMessage.compareToIgnoreCase("AP") == 0)
 					{
 						GetAP = true;
 						RobotAPSignal.lastElement().addElement(comProtocol.GetSignal());
 					}
+					else if (OutMessage.compareToIgnoreCase("ERROR") == 0)
+					{
+						printf("From client " + clientSock.getInetAddress().getHostName() + " : " + InMessage);
+					}
+					else if (OutMessage.compareToIgnoreCase("TURN") == 0)
+					{
+						printf("From client " + clientSock.getInetAddress().getHostName() + " : " + OutMessage);	
+					}
+					else if (OutMessage.compareToIgnoreCase("MOVE") == 0)
+					{
+						printf("From client " + clientSock.getInetAddress().getHostName() + " : " + InMessage + " " + OutMessage);
+					}*/
 					/*else if (OutMessage.compareToIgnoreCase("END") == 0)
 					{
 						GetAP = false;
@@ -752,9 +768,9 @@ public class UI_Server extends JPanel implements MapControl
 						printf("5. GETAP (Robot will scan and return signal strength)");
 						printf("6. ISOBSTACLE (Detect if there is obstacle away)");
 					}*/
-					else
-						printf("From client " + clientSock.getInetAddress().getHostName() + " : " + InMessage);
-						//System.out.println("OUTOUTOTUTOUTOT = " + OutMessage);TODO
+					/*else
+						printf("From client " + clientSock.getInetAddress().getHostName() + " : " + InMessage + " " + OutMessage);
+						//System.out.println("OUTOUTOTUTOUTOT = " + OutMessage);TODO*/
 					Thread.sleep(100);
 				}
 				
@@ -769,10 +785,10 @@ public class UI_Server extends JPanel implements MapControl
 
 				TextDisplayField.requestFocusInWindow();
 			}
-
 			connected = false;
 			disableALL();
 			printf("DisConnected!");
+			ServerClose();
 			createServer.setEnabled(true);
 			createServer.setText("Start Server!");
 		}
@@ -793,6 +809,7 @@ public class UI_Server extends JPanel implements MapControl
 	{
 		try
 		{
+			clientList.removeAllItems();
 			can_move = false;
 			out.close();
 			in.close();

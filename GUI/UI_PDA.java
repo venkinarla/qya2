@@ -16,7 +16,7 @@ public class UI_PDA extends JFrame
 	
 	private GUI_ManualCtrlPanel manual_panel;
 	private GUI_AutoCtrlPanel auto_panel;
-	private GUI_APCollectorPanel ap_panel;
+	//private GUI_APCollectorPanel ap_panel;
 	
 	private JTabbedPane tabbed_pane;
 
@@ -32,11 +32,11 @@ public class UI_PDA extends JFrame
 
 		auto_panel = new GUI_AutoCtrlPanel(lego);
 		manual_panel = new GUI_ManualCtrlPanel(lego);
-		ap_panel = new GUI_APCollectorPanel();
+		//ap_panel = new GUI_APCollectorPanel();
 	
-		tabbed_pane.add("Auto Control", auto_panel);
-		tabbed_pane.add("Manual Control", manual_panel);
-		tabbed_pane.add("AP Collector", ap_panel);
+		tabbed_pane.add("Auto", auto_panel);
+		tabbed_pane.add("Manual", manual_panel);
+		//tabbed_pane.add("AP Collector", ap_panel);
 		add(tabbed_pane, BorderLayout.CENTER);
 	}
 

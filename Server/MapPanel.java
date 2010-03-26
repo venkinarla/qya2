@@ -21,6 +21,7 @@ public class MapPanel extends JPanel
 	private Image image = null;
 	private int startx, starty, endx, endy, Robx, Roby;	//x,y value of 3 colour dot
 	private int PointSize, ZoomFactor;
+	private Integer[] ShortestPath = null;
 	/*
 	 	PointSize 		: the size of the colour dot display on the map
 	 	ZoomFactor		: the width/heigth of a grid
@@ -86,6 +87,11 @@ public class MapPanel extends JPanel
 	{
 		map = InMap;
 	}
+	
+	public void setPath( Integer[] path)
+	{
+		ShortestPath = path;
+	}
 
 	// paint the panel
 	public void paintComponent( Graphics g )
@@ -99,18 +105,19 @@ public class MapPanel extends JPanel
 			int correctEndx = endx / 4 + 5;
 			int correctEndy = endy / 4 + 5;
 			int correctRobx = Robx / 4 + 3;
-			int correctRoby = Roby / 4 + 3;			
+			int correctRoby = Roby / 4 + 3;
 			// display the shortest path on the map
-			/*g.setColor(Color.yellow);
-			if ( shortest_path != null )
+			if ( ShortestPath != null )
 			{
-				for ( int i=0; i<shortest_path.size(); ++i )
+				g.setColor(Color.orange);
+				for ( int i=0; i<ShortestPath.length; ++i )
 				{
-					g.fillOval((shortest_path.get(i).x + Xoffset)* ZoomFactor, 
-							(shortest_path.get(i).y + Yoffset) * ZoomFactor, 
-							PointSize, PointSize);
+					g.fillOval(Coordinate.getCoord(ShortestPath[i]).x * ZoomFactor + Coordinate.getCoord(ShortestPath[i]).x / 4, 
+							Coordinate.getCoord(ShortestPath[i]).y * ZoomFactor + Coordinate.getCoord(ShortestPath[i]).y / 4, 
+							PointSize - 5 , PointSize - 5);
+					//System.out.println("HERE = " + ShortestPath[i] + " ^^^ " + Coordinate.getCoord(ShortestPath[i]).x +" &&& "+Coordinate.getCoord(ShortestPath[i]).y);
 				}
-			}*/
+			}
 			if (startx != -1 && starty != -1)
 			{
 				// Draw the starting location

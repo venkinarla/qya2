@@ -98,11 +98,39 @@ public class DataCollector extends Thread
 	// the warper for the other scan function
 	public static void Scan( int num_sample, int interval, PrintWriter out )
 	{
+		//out.println("AP: START");
 		Vector<SignalVector> vecs = Scan(num_sample, interval);
+		if (vecs == null)
+		{
+			do
+			{
+				try {
+					Runtime.getRuntime().exec("devcon disable \"PCI\\VEN_8086&DEV_4220*\"");
+					try {
+						Thread.sleep(4000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					Runtime.getRuntime().exec("devcon enable \"PCI\\VEN_8086&DEV_4220*\"");
+					try {
+						Thread.sleep(4000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					vecs = Scan(num_sample, interval);				
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} while (vecs == null);
+		}
+		
 		for ( int i=0; i<vecs.size(); ++i )
 		{
 			SignalVector sig_vec = vecs.get(i);
-			System.out.println(sig_vec.dim + " AP(s) found:");
+			//System.out.println(sig_vec.dim + " AP(s) found:");
 			for ( String mac_addr : sig_vec.getMacAddr() )
 			{
 				out.println("AP: " + mac_addr + " " + sig_vec.getRSSI(mac_addr));
@@ -143,7 +171,7 @@ public class DataCollector extends Thread
 				String[] raw_data = collector.spotter_poll();
 				SignalVector sig_vec = new SignalVector(preProcess(raw_data));
 				
-				System.out.println(sig_vec.dim + " APs were seen");
+				//System.out.println(sig_vec.dim + " APs were seen");
 				if (sig_vec.dim > 0)
 				{
 					// Iterate through the Vector and print the readings
@@ -156,16 +184,16 @@ public class DataCollector extends Thread
 						novo_vecs.add(sig_vec);
 					//}
 				}
-				
 				collector.close();
+				Thread.sleep(interval);
 			}
 			//out.println("AP: END");
-			System.out.println(novo_vecs.size());
+			//System.out.println(novo_vecs.size());
 			
 		}
 		catch (Exception ex)
 		{
-			System.err.println("system error: " + ex.toString());
+			System.err.println("System Error: " + ex.getMessage());
 			return null;
 		}
 		
@@ -183,6 +211,7 @@ public class DataCollector extends Thread
 			String ssid = raw_data[i+1];
 			Integer sig_val = Integer.parseInt(raw_data[i+2]);
 			novo_vec.add(new SignalStrength(bssid, ssid, sig_val, -1, -1));
+			//System.out.println(novo_vec);
 		}
 		return novo_vec;
 	}

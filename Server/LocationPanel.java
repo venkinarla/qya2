@@ -40,6 +40,8 @@ public class LocationPanel extends JPanel
 		{
 			public void mouseClicked( MouseEvent e )
 			{
+				if (!buttonStart.isEnabled())
+					return ;				
 				parentPanel.OffEndMonitor();
 				parentPanel.OnStartMonitor();
 			}
@@ -49,6 +51,8 @@ public class LocationPanel extends JPanel
 		{
 			public void mouseClicked( MouseEvent e )
 			{
+				if (!buttonEnd.isEnabled())
+					return ;
 				parentPanel.OffStartMonitor();
 				parentPanel.OnEndMonitor();
 			}
@@ -58,10 +62,16 @@ public class LocationPanel extends JPanel
 		{
 			public void mouseClicked( MouseEvent e )
 			{
+				if (!buttonGo.isEnabled())
+					return ;
 				out.println("BYPASS");
 				parentPanel.setMovePath(new Coordinate(startx, starty),
 						new Coordinate(endx, endy));
 				parentPanel.setMove(true);
+				parentPanel.started();
+				buttonStart.setEnabled(false);
+				buttonEnd.setEnabled(false);
+				buttonGo.setEnabled(false);
 			}
 		});
 
@@ -70,7 +80,7 @@ public class LocationPanel extends JPanel
 		// A temp panel that store the buttons and textfields
 		JPanel tempPanel = new JPanel();
 		tempPanel.setLayout(new GridLayout(5, 1, 10, 10));
-		tempPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLoweredBevelBorder(), "Start / End"));
+		tempPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLoweredBevelBorder(), "Control"));
 		
 		tempPanel.add(buttonStart);
 		textStart.setColumns(5);
@@ -84,7 +94,8 @@ public class LocationPanel extends JPanel
 
 		//Add the LabelPanel and tempPanel to the layout
 		add(new LabelPanel(), BorderLayout.NORTH);
-		add(tempPanel, BorderLayout.CENTER);
+		add(new JLabel(" "), BorderLayout.CENTER);
+		add(tempPanel, BorderLayout.SOUTH);
 	}
 
 	public void disableALL()//Disable all buttons
@@ -109,7 +120,7 @@ public class LocationPanel extends JPanel
 	{
 		JFrame myUI = new JFrame();
 		myUI.setTitle("Location Panel");
-		myUI.setSize(150, 300);
+		myUI.setSize(170, 370);
 		myUI.add(new LocationPanel(new MapControl()
 		{
 			public void OffEndMonitor()
@@ -134,6 +145,10 @@ public class LocationPanel extends JPanel
 			
 			public void setMove( boolean flag )
 			{
+			}
+
+			public void started() {
+				
 			}
 		}));
 		myUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -167,21 +182,29 @@ public class LocationPanel extends JPanel
 		{
 			PointSize = 15;
 			setBorder(BorderFactory.createTitledBorder(BorderFactory.createLoweredBevelBorder(), "Label"));
-			setLayout(new GridLayout(3, 1));
-			setSize(150, 100);
-			add(new JLabel("          NXT Location"));
-			add(new JLabel("          Start Location"));
-			add(new JLabel("          End Location"));
+			setLayout(new GridLayout(5, 1));
+			setSize(170, 100);
+			add(new JLabel("        : Estimated Location"));
+			add(new JLabel("        : Expected Location"));
+			add(new JLabel("        : Starting Location"));
+			add(new JLabel("        : Destination"));
+			add(new JLabel("        : Traveling Path"));
 		}
 		public void paintComponent( Graphics g )
 		{
 			super.paintComponent(g);
+			g.setColor(Color.MAGENTA);
+			g.fillOval(10, 23, PointSize, PointSize);			
 			g.setColor(Color.RED);
-			g.fillOval(10, 23, PointSize, PointSize);
+			g.fillOval(10, 41, PointSize, PointSize);
 			g.setColor(Color.green);
-			g.fillOval(10, 39, PointSize, PointSize);
+			g.fillOval(10, 59, PointSize, PointSize);
 			g.setColor(Color.blue);
-			g.fillOval(10, 55, PointSize, PointSize);
+			g.fillOval(10, 77, PointSize, PointSize);
+			g.setColor(Color.orange);
+			g.fillOval(10, 100, PointSize - 10, PointSize - 10);
+			g.fillOval(15, 100, PointSize - 10, PointSize - 10);
+			g.fillOval(20, 100, PointSize - 10, PointSize - 10);
 		}
 	}
 }

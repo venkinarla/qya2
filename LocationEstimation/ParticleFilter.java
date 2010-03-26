@@ -6,16 +6,15 @@
 
 package LocationEstimation;
 
-import lejos.localization.*;
-import lejos.navigation.*;
+import java.util.Map;
 
 
 public class ParticleFilter 
 {
 	//**************** data member ***************
-	Map environment;
-	ParticleSet particles;
-	Navigator navigator;
+	//Map environment;
+	//ParticleSet particles;
+	//Navigator navigator;
 	
 	//**************** class member **************
 	// initialization

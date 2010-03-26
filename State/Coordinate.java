@@ -35,7 +35,7 @@ public class Coordinate
 		// get the data from file
 		meta_grid = new HashMap<Integer, Coordinate>();
 		BufferedReader reader = null;
-		System.out.println("loading meta grid spec...");
+		//System.out.println("loading meta grid spec...");
 		try
 		{
 			reader = new BufferedReader(new FileReader(meta_grid_file));
@@ -73,13 +73,13 @@ public class Coordinate
 			System.err.println("error: cannot read the file");
 			return;
 		}
-		System.out.println("meta grid spec loaded");
+		//System.out.println("meta grid spec loaded");
 	}
 	
 	// load the meta grid graph
 	public static void initMetaGridGraph()
 	{
-		System.out.println("loading meta grid map...");
+		//System.out.println("loading meta grid map...");
 		meta_grid_graph = new HashMap<Integer, Integer[]>();
 		BufferedReader reader = null;
 		try
@@ -112,8 +112,7 @@ public class Coordinate
 					children[2] = Integer.parseInt(child[2].trim());
 					children[3] = Integer.parseInt(child[3].trim());
 					meta_grid_graph.put(node, children);
-					System.out.println(node+":"+ children[0]+":"+ children[1]+ ":"+ children[2]+":"
-								+ children[3]);
+					//System.out.println(node+":"+ children[0]+":"+ children[1]+ ":"+ children[2]+":" + children[3]);
 				}
 				input = reader.readLine();
 			}
@@ -123,7 +122,7 @@ public class Coordinate
 			System.err.println("error: loading the meta grid graph\n"
 					+ e.toString());
 		}
-		System.out.println("meta grid map loaded");
+		//System.out.println("meta grid map loaded");
 	}
 	
 	public static int transAngle( int init_angle, int goal_angle )
@@ -320,7 +319,7 @@ public class Coordinate
 		if (meta_grid == null)
 			initMetaGrid();
 
-		System.out.println(coord.x +" "+ coord.y);
+		//System.out.println(coord.x +" "+ coord.y);
 		for (int grid_num : meta_grid.keySet())
 		{
 			Coordinate boundary = meta_grid.get(grid_num);
@@ -328,7 +327,7 @@ public class Coordinate
 			{
 				return grid_num;
 			}*/
-			System.out.println(boundary.x +" "+ boundary.y);
+			//System.out.println(boundary.x +" "+ boundary.y);
 			if( boundary.x == coord.x && boundary.y == coord.y)
 				return grid_num;
 		}

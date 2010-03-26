@@ -10,4 +10,5 @@ public interface MapControl
 	abstract public void OffEndMonitor();
 	abstract public void setMovePath(Coordinate Start, Coordinate End);
 	abstract public void setMove(boolean flag);
+	abstract public void started();
 }

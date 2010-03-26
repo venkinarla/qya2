@@ -12,9 +12,6 @@ import lejos.nxt.remote.RemoteMotor;
 import lejos.nxt.remote.RemoteMotorPort;
 import lejos.nxt.remote.RemoteSensorPort;
 
-// we want to get more localization support
-import lejos.localization.*;
-
 import FileIO.Logging;
 import Robot.Protocol;
 import State.Coordinate;
@@ -122,7 +119,7 @@ public class Tribot
 	
 	// customized configuration
 	// specify the sensors and motors
-	public void configure()
+	public boolean configure()
 	{
 		name = "NXT";
 		setBT();
@@ -131,8 +128,8 @@ public class Tribot
 			connect(name);
 		if (connected)
 		{
-			wheel_diam = 16.0f;
-			track_width = 5.6f;
+			//wheel_diam = 16.0f;
+			//track_width = 5.6f;
 
 			left_motor = new RemoteMotor(cmd, portA);
 			right_motor = new RemoteMotor(cmd, portB);
@@ -145,8 +142,9 @@ public class Tribot
 			left_sonar = new UltrasonicSensor(port1);
 			right_sonar = new UltrasonicSensor(port2);
 			front_sonar = new UltrasonicSensor(port3);
-			front_light = new LightSensor(port4);
+			//front_light = new LightSensor(port4);
 		}
+		return connected;
 	}
 	
 	// connect to a tribot
@@ -157,27 +155,13 @@ public class Tribot
 			NXTComm comm = NXTCommFactory.createNXTComm(type);
 			NXTInfo details = null;
 			
-			NXTInfo[] dev_info = comm.search(name, type);
-
-			if (dev_info.length <= 0)
+			NXTInfo dev_info = new NXTInfo(BLUETOOTH, "NXT", "00:16:53:01:21:F9");
+			connected = comm.open(dev_info);
+			if (connected)
 			{
-				System.err.println("ERROR: Cannot find any device");
-				comm.close();
-				return;
+				details = dev_info;
+				System.out.println("Robot Connection Established!");
 			}
-
-			// connect to the first connectable device
-			for (int i = 0; i < dev_info.length; ++i)
-			{
-				connected = comm.open(dev_info[i]);
-				if (connected)
-				{
-					details = dev_info[i];
-					System.out.println("Connection established");
-					break;
-				}
-			}
-			
 			if ( !connected )
 			{	
 				System.err.println("ERROR: Cannot establish connection");
@@ -188,12 +172,12 @@ public class Tribot
 			{
 				// display the device information
 				String conn_type = (details.protocol == USB) ? "USB": "BLUETOOTH";
-				System.out.println("Connected");
-				System.out.println("================================================");
+				//System.out.println("Connected");
+				//System.out.println("================================================");
 				System.out.println("Connection Type : " + conn_type);
 				System.out.println("NXT Name        : " + details.name);
 				System.out.println("Bluetooth  Addr : " + details.deviceAddress);
-				System.out.println("================================================");
+				//System.out.println("================================================");
 
 				NXTCommand cmd = new NXTCommand();
 				cmd.setNXTComm(comm);
@@ -210,7 +194,7 @@ public class Tribot
 		}
 		catch (Exception e)
 		{
-			System.err.println("ERROR: " + e.toString());
+			System.err.println("ERROR: " + e.getMessage());
 		}
 		
 	}
@@ -270,7 +254,7 @@ public class Tribot
 		int front_reading = getFrontDist();
 		
 		setSpeed(speed);				// Setup the speed of both motor
-		if ( front_reading >= front_danger_dist )	//Check to see if nothing is in front of the robot
+		if ( front_reading >= front_danger_dist && front_reading < 255)	//Check to see if nothing is in front of the robot
 		{
 			right_motor.forward();			// Tell the right motor move forward
 			left_motor.forward();			// Tell the left motor move forward
@@ -295,7 +279,7 @@ public class Tribot
 			front_reading = getFrontDist();
 			//System.out.println(getLeftSpeed() + " " + getRightSpeed() + " " + time_count + " " + time_unit);
 																//--------------------------------------
-			if ( front_reading <= front_danger_dist )			// if the robot is about to hit something
+			if ( front_reading <= front_danger_dist  || front_reading == 255)			// if the robot is about to hit something
 			{
 				System.out.println("FRONT HIT = " + front_reading + " HIT TIME = " + time_count + " dur = " + duration);
 				if (time_count + time_unit*2 >= duration)		// Ignore the last bit of distance if it is about the end of the duration

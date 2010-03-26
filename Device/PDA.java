@@ -13,8 +13,11 @@ package Device;
 import java.io.*;
 import java.net.*;
 
+import javax.swing.JFrame;
+
 import Robot.*;
 import Data.*;
+import GUI.UI_PDA;
 
 public class PDA extends Thread
 {
@@ -73,7 +76,9 @@ public class PDA extends Thread
 			if (lego != null)
 			{
 				if ( !lego.isConnected() )
-					connectRobot();
+				{
+					//connectRobot();
+				}
 				//if ( !dev_connected )
 				//	connectDevice();
 			}
@@ -94,38 +99,35 @@ public class PDA extends Thread
 	public void runServer()
 	{
 		// initialization
-		System.out.println("Starting client...");
+		//System.out.println("Starting client...");
 		// connect the PC Server 
 		connectServer();
-		System.out.println("Client started");
-		
+		if (server_connected)
+			System.out.println("Server Connected!");
 		while ( server_connected )
 		{			
 			try
 			{	
 				// receive pc server command
 				String in_msg = sin.readLine();
-				System.out.println("From PC Server: " + in_msg);
+				if (!in_msg.equalsIgnoreCase("BYPASS") && !in_msg.equalsIgnoreCase("GETDATA"))
+					System.out.println("From PC Server: " + in_msg);
 				
 				if ( in_msg == null || in_msg.equalsIgnoreCase("Bye") )
 				{
-					System.out.println("closing server...");
+					System.out.println("Closing connection...");
 					break;
 				}
 				
 				// collect ap data and send back to server
-				else if ( in_msg.length() > 5 && 
-						in_msg.substring(0, 5).equalsIgnoreCase("getap") )
+				else if ( in_msg.equalsIgnoreCase("getap") || in_msg.equalsIgnoreCase("getap"))
 				{
 					// e.g. getap num_sample scan_interval
-					System.out.println("start getting ap data");
-					String[] params = in_msg.substring(5).trim().split(" ");
-					if ( params.length == 2 )
-					{
-						DataCollector.Scan(Integer.parseInt(params[0].trim()),
-								Integer.parseInt(params[1].trim()), sout);
-					}
-					System.out.println("ap data collected from spotter");
+					//System.out.println("==============================");
+					//System.out.println("Start getting signal data!");
+					DataCollector.Scan(5, 1000, sout);
+					//System.out.println("Signal data collected successfully!");
+					//System.out.println("==============================");
 					
 					// use the remote device as a spotter
 					/*if ( !dev_connected )
@@ -172,22 +174,22 @@ public class PDA extends Thread
 				}
 				else if ( in_msg.equalsIgnoreCase("isobstacle") || in_msg.equalsIgnoreCase("ISOBSTACLE"))
 				{
-					int front = lego.getFrontDist();
-					int left = lego.getLeftDist();
-					int right = lego.getRightDist();
-					
 					if ( lego.isConnected() )
 					{
+						int front = lego.getFrontDist();
+						int left = lego.getLeftDist();
+						int right = lego.getRightDist();
+												
 						sout.println(
 							"Front : [" + front + "]  " +
 							"Left : [" + left + "]  " + 
 							"Right : [" + right + "]"
 						);
-						if (front <= 40)
+						if (front <= 40 || front == 255)
 							sout.println("Warning : Obstacle detected at the FRONT of the robot!");
-						if (left <= 40)
+						if (left <= 40 || left == 255)
 							sout.println("Warning : Obstacle detected at the LEFT side of the robot!");
-						if (right <= 40)
+						if (right <= 40 || right == 255)
 							sout.println("Warning : Obstacle detected at the RIGHT side of the robot!");
 					}
 					else
@@ -207,7 +209,7 @@ public class PDA extends Thread
 					runCommand();
 
 					// give feedback to the server
-					System.out.println("To PC Server: " + out_msg);
+					//System.out.println("To PC Server: " + out_msg);
 					sout.println(out_msg);
 				}
 
@@ -215,14 +217,14 @@ public class PDA extends Thread
 			}
 			catch (Exception e)
 			{
-				System.err.println("Server error: " + e.toString());
+				System.err.println("Server Error: " + e.getMessage());
 				break;
 			}
 		}
 
 		// close the connection of both the robot and the PC server
 		disconnectServer();
-		System.out.println("Server Closed!");
+		System.out.println("Connection to the server has been closed!");
 	}
 
 	// execute the command in automated mode
@@ -233,14 +235,14 @@ public class PDA extends Thread
 		{
 			// get current command
 			comm_protocol.NextCommand();
-			System.out.println("Command:" + comm_protocol.GetAction());
+			/*System.out.println("Command:" + comm_protocol.GetAction());
 			System.out.println("Value1:" + comm_protocol.GetValue1());
 			System.out.println("Value2:" + comm_protocol.GetValue2());
-			System.out.println("Duration:" + comm_protocol.GetDuration());
+			System.out.println("Duration:" + comm_protocol.GetDuration());*/
 			
 			if ( !lego.isConnected() )
 			{
-				System.err.println("ERROR : Robot is not connected!");
+				//System.err.println("ERROR : Robot is not connected!");
 				return false;
 			}
 
@@ -325,7 +327,7 @@ public class PDA extends Thread
 		{
 			try
 			{
-				System.out.println("Initializing PC Server connection...");
+				//System.out.println("Initializing PC Server connection...");
 
 				server_socket = new Socket(IP, port);
 				//System.out.println(IP + " " + port);
@@ -333,17 +335,17 @@ public class PDA extends Thread
 						.getInputStream()));
 				sout = new PrintWriter(server_socket.getOutputStream(), true);
 				server_connected = true;
-				System.out.println("PC Server connection initialized");
+				//System.out.println("PC Server connection initialized");
 				break;
 			}
 			catch (Exception e1)
 			{
-				System.out.println("Connection error: " + e1.toString());
+				System.out.println("Connection Error: " + e1.getMessage());
 			}
 
 			try
 			{
-				Thread.sleep(3000);
+				Thread.sleep(10000);
 			}
 			catch (Exception e)
 			{
@@ -362,19 +364,23 @@ public class PDA extends Thread
 		disconnectServer();
 	}
 	
-	public boolean connectRobot()
+	public void connectRobot()
 	{
+		boolean connected = false;
 		try
 		{
-			lego.configure();
-			rin = new BufferedReader( new InputStreamReader(lego.getInputStream()) );
-			rout = new PrintWriter(lego.getOutputStream());
+			connected = lego.configure();
+			if (connected)
+			{
+				rin = new BufferedReader( new InputStreamReader(lego.getInputStream()) );
+				rout = new PrintWriter(lego.getOutputStream());
+			}
 		}
 		catch (Exception e)
 		{
-			System.err.println("connection error: cannot connect to the robot\n"+ e.toString());
+			System.err.println("Connection error: Cannot connect to the robot\n"+ e.toString());
 		}
-		return lego.isConnected();
+
 	}
 	
 	

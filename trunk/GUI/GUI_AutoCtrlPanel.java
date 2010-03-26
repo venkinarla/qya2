@@ -99,16 +99,16 @@ public class GUI_AutoCtrlPanel extends JPanel
 		gc.anchor = GridBagConstraints.EAST;
 		gc.fill = GridBagConstraints.BOTH;
 		gc.gridwidth = GridBagConstraints.LINE_START;
-		ConnectPanel.add(new JLabel("Server "));
+		//ConnectPanel.add(new JLabel("Server "));
 		ConnectPanel.add(connectButton, gc);
 		//ConnectPanel.add(new JLabel("scan"));
 		//gc.gridwidth = GridBagConstraints.LINE_END;
 		
 		
 		gc.gridwidth = GridBagConstraints.LINE_START;
-		ConnectPanel.add(new JLabel(" Port: "), gc);
+		//ConnectPanel.add(new JLabel(" Port: "), gc);
 		ConnectPanel.add(TextPort, gc);
-		ConnectPanel.add(new JLabel(" IP: "), gc);
+		//ConnectPanel.add(new JLabel(" IP: "), gc);
 		gc.gridwidth = GridBagConstraints.LINE_END;
 		ConnectPanel.add(TextIP, gc);
 		
@@ -123,7 +123,7 @@ public class GUI_AutoCtrlPanel extends JPanel
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		add(Textscroll, BorderLayout.CENTER);
 
-		sendButton = new JButton("ALT");
+		/*sendButton = new JButton("ALT");
 		sendButton.addMouseListener(new MouseAdapter()
 		{
 			public void mouseClicked( MouseEvent e )
@@ -144,7 +144,7 @@ public class GUI_AutoCtrlPanel extends JPanel
 		Messaging.add(sendButton, BorderLayout.EAST);
 		add(Messaging, BorderLayout.SOUTH);
 
-		sendButton.setEnabled(false);
+		sendButton.setEnabled(false);*/
 		ServerConnected = false;
 		
 		connectButton.addMouseListener(new MouseAdapter()
@@ -196,14 +196,14 @@ public class GUI_AutoCtrlPanel extends JPanel
 	{
 		connectButton.setEnabled(true);
 		connectButton.setText("ON");
-		sendButton.setEnabled(false);
+		//sendButton.setEnabled(false);
 	}
 
 	public void enableALL()
 	{
 		connectButton.setEnabled(false);
 		connectButton.setText("OFF");
-		sendButton.setEnabled(true);
+		//sendButton.setEnabled(true);
 	}
 
 	protected void finalize()

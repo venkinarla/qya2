@@ -49,9 +49,9 @@ public class SignalDatabase {
 	public Integer getLocation2(SignalVector query) {
 		return loc_estim.knn_estimate_dataset2(query, sig_vec_base_v, 7);
 	}
-	
+
 	// using shortest distance with averaged dataset right now
-	public Integer getLocationAvg(SignalVector query){
+	public Integer getLocationAvg(SignalVector query) {
 		return loc_estim.avg_estimate(query, sig_vec_base_avg);
 	}
 
@@ -83,49 +83,51 @@ public class SignalDatabase {
 	// process the signal vector in database
 	// and calculate the average signal strength of each grid
 	// return a list of grids, each with a set of processed signal
-	public Vector<SignalVector> processSignal(Vector<Vector<SignalVector>> dataset){
-		
+	public Vector<SignalVector> processSignal(
+			Vector<Vector<SignalVector>> dataset) {
+
 		Vector<SignalVector> result = new Vector<SignalVector>();
 		Vector<SignalVector> curr_vec = new Vector<SignalVector>();
 		Map<String, Integer> avg_map = new HashMap<String, Integer>();
 		PrintWriter fout = null;
-		
+
 		try {
 			fout = new PrintWriter(dataset_average);
 			System.out.println("Writing average singal dataset...");
 		} catch (FileNotFoundException e) {
 
 			System.err.println("loading average signal data error: the file "
-				+ "avgDataset" + " is not found.");
+					+ "avgDataset" + " is not found.");
 			System.err.println(e.toString());
 			e.printStackTrace();
 		}
-		
-		fout.write("%This is the processed dataset which include the averaged signal of each grid.\n"+
-					"%The format is as follows:\n"+"%Dimension	Grid No.\n"+"%MAC add.	RSSI\n");
+
+		fout
+				.write("%This is the processed dataset which include the averaged signal of each grid.\n"
+						+ "%The format is as follows:\n"
+						+ "%Dimension	Grid No.\n" + "%MAC add.	RSSI\n");
 		fout.write("\n");
-		for( int i=0; i<dataset.size(); i++ ){
+		for (int i = 0; i < dataset.size(); i++) {
 			curr_vec = dataset.elementAt(i);
 			avg_map = new HashMap<String, Integer>();
 			// aggregate the signals
-			for( int j=0; j<curr_vec.size(); j++){
+			for (int j = 0; j < curr_vec.size(); j++) {
 				SignalVector curr_sig = curr_vec.elementAt(j);
-				for( String macAddr : curr_sig.vec.keySet()){
-					if( avg_map.containsKey(macAddr)){
-						avg_map.put(macAddr, avg_map.get(macAddr)+ 
-												curr_sig.vec.get(macAddr));
-					}
-					else{
+				for (String macAddr : curr_sig.vec.keySet()) {
+					if (avg_map.containsKey(macAddr)) {
+						avg_map.put(macAddr, avg_map.get(macAddr)
+								+ curr_sig.vec.get(macAddr));
+					} else {
 						avg_map.put(macAddr, curr_sig.vec.get(macAddr));
 					}
 				}
 			}
 			// averaging the signals
 			// output to avgDataset
-			fout.write(avg_map.size()+" "+(i+1)+"\n");
-			for( String macAddr: avg_map.keySet() ){
-				avg_map.put(macAddr, avg_map.get(macAddr)/curr_vec.size());
-				fout.write(macAddr+" "+avg_map.get(macAddr)+"\n");
+			fout.write(avg_map.size() + " " + (i + 1) + "\n");
+			for (String macAddr : avg_map.keySet()) {
+				avg_map.put(macAddr, avg_map.get(macAddr) / curr_vec.size());
+				fout.write(macAddr + " " + avg_map.get(macAddr) + "\n");
 			}
 			fout.write("\n");
 			avg_map.clear();
@@ -134,7 +136,6 @@ public class SignalDatabase {
 		System.out.println("Writing average singal dataset Successfully");
 		return result;
 	}
-
 
 	// preproces the data, take the average of all
 	// the result vector will contain no duplicate elements
@@ -175,126 +176,198 @@ public class SignalDatabase {
 		Scanner fin = null;
 		Scanner fin2 = null;
 		Scanner fin3 = null;
+		boolean exist1 = true;
+		boolean exist2 = true;
+		boolean exist3 = true;
 		try {
 			fin = new Scanner(new FileInputStream(dataset_file));
 		} catch (FileNotFoundException e) {
-			System.err.println("loading signal data error: the file "
-					+ dataset_file + " is not found.");
-			System.err.println(e.toString());
-			return;
+			System.err.println("Create new " + dataset_file + " .");
+			exist1 = false;
 		}
 		try {
 			fin2 = new Scanner(new FileInputStream(dataset_file2));
 		} catch (FileNotFoundException e) {
-			System.err.println("loading signal data error: the file "
-					+ dataset_file2 + " is not found.");
-			System.err.println(e.toString());
-			return;
+			System.err.println("Create new " + dataset_file2 + " .");
+			exist2 = false;
 		}
 		try {
 			fin3 = new Scanner(new FileInputStream(dataset_average));
 		} catch (FileNotFoundException e) {
-			System.err.println("loading signal data error: the file "
-					+ dataset_average + " is not found.");
-			System.err.println(e.toString());
-			return;
+			System.err.println("Create new " + dataset_average + " .");
+			exist3 = false;
 		}
 
+		boolean start;
+		Integer meta_grid;
+		Integer dim;
 		// load dataset1
-		boolean start = false;
-		Integer meta_grid = 0;
-		Integer dim = 0;
-		while (fin.hasNextLine()) {
-			String curr_read = fin.nextLine().trim();
+		if (exist1) {
+			start = false;
+			meta_grid = 0;
+			dim = 0;
+			while (fin.hasNextLine()) {
+				String curr_read = fin.nextLine().trim();
 
-			if (curr_read.length() == 0) {
-				start = true;
-				// start = false; //to read new dataset format
-			} else if (curr_read.charAt(0) == '%') {
-				// do nothing
-			} else if (curr_read.charAt(0) == '#') {
-				// start = false;
-				start = true; // to read new dataset format
-			} else if (start) {
-				if (curr_read.charAt(0) == '#') {
+				if (curr_read.length() == 0) {
+					start = true;
+					// start = false; //to read new dataset format
+				} else if (curr_read.charAt(0) == '%') {
+					// do nothing
+				} else if (curr_read.charAt(0) == '#') {
+					// start = false;
+					start = true; // to read new dataset format
+				} else if (start) {
+					if (curr_read.charAt(0) == '#') {
+						start = false;
+						continue;
+					}
 					start = false;
-					continue;
+					
+					dim = Integer.parseInt(curr_read
+							.split(" ")[0]);
+					meta_grid = Integer
+					.parseInt(curr_read.split(" ")[1]);
+					sig_vec_base.add(new SignalVector());
+					sig_vec_base.lastElement().dim = dim;
+					sig_vec_base.lastElement().meta_grid = meta_grid;
+					if(!exist2){
+						sig_vec_base_v.elementAt(meta_grid-1).add(sig_vec_base.lastElement());
+					}
+				} else {
+					String[] reading = curr_read.split(" ");
+					sig_vec_base.lastElement().put(reading[0],
+							Integer.parseInt(reading[1]));
+					if(!exist2){
+						sig_vec_base_v.elementAt(meta_grid-1).add(sig_vec_base.lastElement());
+					}
 				}
-				start = false;
-
-				sig_vec_base.add(new SignalVector());
-				sig_vec_base.lastElement().dim = Integer.parseInt(curr_read
-						.split(" ")[0]);
-				sig_vec_base.lastElement().meta_grid = Integer
-						.parseInt(curr_read.split(" ")[1]);
-			} else {
-				String[] reading = curr_read.split(" ");
-				sig_vec_base.lastElement().put(reading[0],
-						Integer.parseInt(reading[1]));
 			}
 		}
 
 		// load dataset 2
-		start = false;
-		meta_grid = 0;
-		dim = 0;
-		while (fin2.hasNextLine()) {
-			String curr_read = fin2.nextLine().trim();
+		if (exist2) {
+			start = false;
+			meta_grid = 0;
+			dim = 0;
+			while (fin2.hasNextLine()) {
+				String curr_read = fin2.nextLine().trim();
 
-			if (curr_read.length() == 0) {
-				start = false; // to read new dataset format
-			} else if (curr_read.charAt(0) == '%') {
-				// do nothing
-			} else if (curr_read.charAt(0) == '#') {
-				start = true; // to read new dataset format
-			} else if (start) {
-				if (curr_read.charAt(0) == '#') {
+				if (curr_read.length() == 0) {
+					start = false; // to read new dataset format
+				} else if (curr_read.charAt(0) == '%') {
+					// do nothing
+				} else if (curr_read.charAt(0) == '#') {
+					start = true; // to read new dataset format
+				} else if (start) {
+					if (curr_read.charAt(0) == '#') {
+						start = false;
+						continue;
+					}
 					start = false;
-					continue;
+					dim = Integer.parseInt(curr_read.split(" ")[0]);
+					meta_grid = Integer.parseInt(curr_read.split(" ")[1]);
+					sig_vec_base_v.elementAt(meta_grid - 1).add(
+							new SignalVector());
+					sig_vec_base_v.elementAt(meta_grid - 1).lastElement().dim = dim;
+					sig_vec_base_v.elementAt(meta_grid - 1).lastElement().meta_grid = meta_grid;
+				} else {
+					String[] reading = curr_read.split(" ");
+					//System.out.println(Integer.parseInt(reading[1]));
+					sig_vec_base_v.elementAt(meta_grid - 1).lastElement().put(
+							reading[0], Integer.parseInt(reading[1]));
 				}
-				start = false;
-				dim = Integer.parseInt(curr_read.split(" ")[0]);
-				meta_grid = Integer.parseInt(curr_read.split(" ")[1]);
-				sig_vec_base_v.elementAt(meta_grid - 1).add(new SignalVector());
-				sig_vec_base_v.elementAt(meta_grid - 1).lastElement().dim = dim;
-				sig_vec_base_v.elementAt(meta_grid - 1).lastElement().meta_grid = meta_grid;
-			} else {
-				String[] reading = curr_read.split(" ");
-				sig_vec_base_v.elementAt(meta_grid - 1).lastElement().put(
-						reading[0], Integer.parseInt(reading[1]));
 			}
 		}
 		
-		//load averaged dataset
-		start = false;
-		while( fin3.hasNextLine()){
-			String curr_read = fin3.nextLine().trim();
-			if (curr_read.length() == 0) {
-				start = true;
-			} else if (curr_read.charAt(0) == '%') {
-				// do nothing
-			} else if (curr_read.charAt(0) == '#') {
-				start = true; // to read new dataset format
-			} else if (start) {
-				if (curr_read.charAt(0) == '#') {
+		if(!exist2) 
+			this.saveDataSet2();
+		if(!exist3){
+			this.processSignal(this.sig_vec_base_v);
+			exist3 = true;
+		}
+		
+		// load averaged dataset
+		if (exist3) {
+			start = false;
+			while (fin3.hasNextLine()) {
+				String curr_read = fin3.nextLine().trim();
+				if (curr_read.length() == 0) {
+					start = true;
+				} else if (curr_read.charAt(0) == '%') {
+					// do nothing
+				} else if (curr_read.charAt(0) == '#') {
+					start = true; // to read new dataset format
+				} else if (start) {
+					if (curr_read.charAt(0) == '#') {
+						start = false;
+						continue;
+					}
 					start = false;
-					continue;
-				}
-				start = false;
 
-				sig_vec_base_avg.add(new SignalVector());
-				sig_vec_base_avg.lastElement().dim = Integer.parseInt(curr_read
-						.split(" ")[0]);
-				sig_vec_base_avg.lastElement().meta_grid = Integer
-						.parseInt(curr_read.split(" ")[1]);
-			} else {
-				String[] reading = curr_read.split(" ");
-				sig_vec_base_avg.lastElement().put(reading[0],
-						Integer.parseInt(reading[1]));
+					sig_vec_base_avg.add(new SignalVector());
+					sig_vec_base_avg.lastElement().dim = Integer
+							.parseInt(curr_read.split(" ")[0]);
+					sig_vec_base_avg.lastElement().meta_grid = Integer
+							.parseInt(curr_read.split(" ")[1]);
+				} else {
+					String[] reading = curr_read.split(" ");
+					sig_vec_base_avg.lastElement().put(reading[0],
+							Integer.parseInt(reading[1]));
+				}
 			}
 		}
+		
 	}
+	public void saveDataSet2() {
+		PrintWriter fout2 = null;
+		try {
+			fout2 = new PrintWriter(dataset_file2);
+		} catch (FileNotFoundException e) {
+			System.err.println("saving signal data error: the file"
+					+ dataset_file + " cannot be found");
+			System.err.println(e.toString());
+			return;
+		}
 
+		fout2.println("% do not modify the content");
+		fout2.println("% generated by machine");
+		fout2.println("% format: dimension   meta_grid");
+		fout2.println("%         bssid       signal_strength");
+		fout2.println("%         ......      ......");
+		fout2.println();
+
+		for (int i = 0; i < sig_vec_base_v.size(); i++) {
+			Vector<SignalVector> curr_vec_vec = sig_vec_base_v.elementAt(i);
+			// When no records for a specific grid
+			if (curr_vec_vec.size() == 0) {
+				fout2.println("#" + i + 1 + " NO DATA ");
+			} else {
+				for (int j = 0; j < curr_vec_vec.size(); ++j) {
+					fout2.println("#Grid " + (i + 1) + " Record " + (j + 1));
+					SignalVector curr_vec = curr_vec_vec.get(j);
+					// we only take meaningful result into account
+					if (curr_vec.dim < 6)
+						continue;
+					// format:$dimension $meta_grid
+					fout2.println(curr_vec.dim + " " + curr_vec.meta_grid);
+					for (String mac_addr : curr_vec.getMacAddr()) {
+						// format: $mac_addr $rssi
+						fout2.println(mac_addr + " "
+								+ curr_vec.getRSSI(mac_addr));
+					}
+					fout2.println();
+				}
+			}
+			for (int k = curr_vec_vec.size() + 1; k <= 4; k++) {
+				fout2.println("#Grid " + (i + 1) + " Record " + k
+						+ " is missing.");
+				fout2.println();
+			}
+		}
+		fout2.close();
+	}
+	
 	// save the training data
 	public void saveDataSet() {
 		PrintWriter fout = null;
@@ -377,7 +450,7 @@ public class SignalDatabase {
 		SignalDatabase database = new SignalDatabase();
 		database.loadDataSet();
 		database.saveDataSet();
-		
+
 		database.processSignal(database.sig_vec_base_v);
 	}
 

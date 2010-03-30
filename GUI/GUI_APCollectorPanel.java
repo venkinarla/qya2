@@ -20,11 +20,11 @@ public class GUI_APCollectorPanel extends JPanel
 {
 	//************* data member ***************
 	// functional units
-	DataCollector collector;
-	DataReceiver receiver;
+	//DataCollector collector;
+	//DataReceiver receiver;
 	
 	// add the collected data to database
-	SignalDatabase database;
+	//SignalDatabase database;
 	
 	// parameters
 	int num_sample = 5;
@@ -33,15 +33,18 @@ public class GUI_APCollectorPanel extends JPanel
 	// GUI
 	JTextArea text_window;
 	JButton scan_button;
-	JTextField num_sample_field;
-	JTextField meta_grid_field;
+	//JTextField num_sample_field;
+	//JTextField meta_grid_field;
+	private BufferedWriter out = null;
+	private FileWriter fstream = null;
+    private int counter = 1;
 	
 	//************* class method **************
 	// initialization
 	public GUI_APCollectorPanel()
 	{
-		database = new SignalDatabase();
-		database.loadDataSet();
+		//database = new SignalDatabase();
+		//database.loadDataSet();
 		initGUI();
 	}
 	
@@ -52,7 +55,7 @@ public class GUI_APCollectorPanel extends JPanel
 		text_window = new JTextArea();
 		PrintStream printer = new PrintStream(new JTextAreaOutputStream(text_window));
 		System.setOut(printer);
-		System.setErr(printer);
+		//System.setErr(printer);
 		text_window.setEditable(false);
 		JScrollPane text_scroll = new JScrollPane(text_window,
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -60,9 +63,9 @@ public class GUI_APCollectorPanel extends JPanel
 		add(text_scroll, BorderLayout.CENTER);
 		
 		JPanel param_panel = new JPanel();
-		param_panel.setLayout(new GridLayout(3, 1));
+		//param_panel.setLayout(new GridLayout(3, 1));
 		
-		param_panel.add(new JLabel("scan no."));
+		/*param_panel.add(new JLabel("scan no."));
 		num_sample_field = new JTextField();
 		num_sample_field.setText("4");
 		param_panel.add(num_sample_field);;
@@ -70,9 +73,9 @@ public class GUI_APCollectorPanel extends JPanel
 		param_panel.add(new JLabel("grid"));
 		meta_grid_field = new JTextField();
 		meta_grid_field.setText("-1");
-		param_panel.add(meta_grid_field);
+		param_panel.add(meta_grid_field);*/
 		
-		param_panel.add(new JLabel("press to scan"));
+		//param_panel.add(new JLabel("press to scan"));
 		scan_button = new JButton();
 		scan_button.setText("scan");
 		param_panel.add(scan_button);
@@ -81,12 +84,11 @@ public class GUI_APCollectorPanel extends JPanel
 		{
 			public void actionPerformed(ActionEvent e) 
 			{
-				num_sample = Integer.parseInt(num_sample_field.getText());
-				meta_grid = Integer.parseInt(meta_grid_field.getText());
-				text_window.append("Current meta grid: " + meta_grid + "\n");
-				/*Vector<SignalVector> sv = DataCollector.Scan(1, 1000);
-				System.out.println(sv);
-				if (sv == null)
+				//num_sample = Integer.parseInt(num_sample_field.getText());
+				//meta_grid = Integer.parseInt(meta_grid_field.getText());
+				Vector<SignalVector> sv = DataCollector.Scan(1, 1000);
+				//System.out.println(sv);
+				/*if (sv == null)
 				{
 					try {
 						Runtime.getRuntime().exec("devcon disable \"PCI\\VEN_8086&DEV_4220*\"");
@@ -113,19 +115,46 @@ public class GUI_APCollectorPanel extends JPanel
 						e2.printStackTrace();
 					}
 					sv = DataCollector.Scan(1, 1000);
-				}
-				for( int i=0; i<sv.size(); i++ ){
-					text_window.append("AP"+(i+1)+"\n");
-					for(String mac: sv.elementAt(i).getMacAddr()){
-						
-						text_window.append(mac+" "+sv.elementAt(i).getRSSI(mac)+"\n");
-					}
 				}*/
+		    	try {
+					fstream = new FileWriter(counter + ".txt");
+				} catch (IOException e3) {
+					// TODO Auto-generated catch block
+					e3.printStackTrace();
+				}
+				out = new BufferedWriter(fstream);
+				for( int i=0; i<sv.size(); i++ ){
+					//text_window.append("AP"+(i+1)+"\n");
+					try {
+						out.append(sv.elementAt(i).dim + "\n");
+					} catch (IOException e2) {
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}
+					text_window.append("Number of APs =  " + sv.elementAt(i).dim + "\n");
+					for(String mac: sv.elementAt(i).getMacAddr()){
+						text_window.append(mac+" "+sv.elementAt(i).getRSSI(mac)+"\n");
+					    	    try {
+									out.append(mac+" "+sv.elementAt(i).getRSSI(mac)+"\n");
+								} catch (IOException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+					}
+				}
+				try {
+					out.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				counter++;
+				text_window.append("\n");
 				// add the new data to database
-				database.expand(DataCollector.Scan(num_sample, 1000), meta_grid);
+				/*database.expand(DataCollector.Scan(num_sample, 1000), meta_grid);
 				text_window.append("Database Size: " + database.sig_vec_base.size() + "\n");
 				// save database to local disk
-				database.saveDataSet();
+				database.saveDataSet();*/
 			}		
 		});
 		
@@ -135,7 +164,13 @@ public class GUI_APCollectorPanel extends JPanel
 	protected void finalize()
 	{
 		// save the dataset in the end
-		database.saveDataSet();
+		//database.saveDataSet();
+		try {
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	

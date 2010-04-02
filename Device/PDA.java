@@ -24,11 +24,11 @@ public class PDA extends Thread
 	//********** data member ************
 	
 	// device side communication
-	private boolean dev_connected = false;
+	/*private boolean dev_connected = false;
 	private ServerSocket dev_server_socket;
 	private Socket dev_client_socket;
 	private BufferedReader din;
-	private PrintWriter dout;
+	private PrintWriter dout;*/
 	
 	
 	// robot connection
@@ -110,6 +110,7 @@ public class PDA extends Thread
 			{	
 				// receive pc server command
 				String in_msg = sin.readLine();
+				String [] input = in_msg.split(" ");
 				if (!in_msg.equalsIgnoreCase("BYPASS") && !in_msg.equalsIgnoreCase("GETDATA"))
 					System.out.println("From PC Server: " + in_msg);
 				
@@ -118,14 +119,19 @@ public class PDA extends Thread
 					System.out.println("Closing connection...");
 					break;
 				}
-				
+				else if (in_msg.equalsIgnoreCase("est") || in_msg.equalsIgnoreCase("EST"))
+				{
+					//sout.println("Estimating robot location, Please Wait...");
+					DataCollector.estimate(1, 1000, sout);
+				}
 				// collect ap data and send back to server
-				else if ( in_msg.equalsIgnoreCase("getap") || in_msg.equalsIgnoreCase("getap"))
+				else if ( input[0].equalsIgnoreCase("getap") || input[0].equalsIgnoreCase("getap"))
 				{
 					// e.g. getap num_sample scan_interval
 					//System.out.println("==============================");
 					//System.out.println("Start getting signal data!");
-					DataCollector.Scan(5, 1000, sout);
+					//sout.println("Collecting APs signal, Please Wait...");
+					DataCollector.Scan(1, 1000, sout);
 					//System.out.println("Signal data collected successfully!");
 					//System.out.println("==============================");
 					
@@ -151,7 +157,7 @@ public class PDA extends Thread
 				{
 					lego.runProgram("GrabBall.nxj");
 				}*/
-				
+
 				else if ( in_msg.equalsIgnoreCase("getdata") || in_msg.equalsIgnoreCase("GETDATA"))
 				{
 					if ( lego.isConnected() )

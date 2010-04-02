@@ -104,10 +104,10 @@ public class DataCollector extends Thread
 		{
 			do
 			{
-				try {
+				/*try {
 					Runtime.getRuntime().exec("devcon disable \"PCI\\VEN_8086&DEV_4220*\"");
 					try {
-						Thread.sleep(4000);
+						Thread.sleep(2000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -118,12 +118,19 @@ public class DataCollector extends Thread
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+					}*/
+					out.println("ERROR : Please restart!");
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 					vecs = Scan(num_sample, interval);				
-				} catch (IOException e) {
+				/*} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				}*/
 			} while (vecs == null);
 		}
 		
@@ -138,6 +145,26 @@ public class DataCollector extends Thread
 		}
 		out.println("AP: END");
 	}
+	
+	public static void estimate( int num_sample, int interval, PrintWriter out )
+	{
+		Vector<SignalVector> vecs = null;
+		do
+		{
+			vecs = Scan(num_sample, interval);
+		}while (vecs == null);
+		
+		for ( int i=0; i < vecs.size(); ++i )
+		{
+			SignalVector sig_vec = vecs.get(i);
+			for ( String mac_addr : sig_vec.getMacAddr() )
+			{
+				out.println("EST: " + mac_addr + " " + sig_vec.getRSSI(mac_addr));
+			}
+		}
+		out.println("EST: END");
+	}
+	
 	
 	// scan
 	// return format: 
@@ -185,7 +212,7 @@ public class DataCollector extends Thread
 					//}
 				}
 				collector.close();
-				Thread.sleep(interval);
+				//Thread.sleep(interval);
 			}
 			//out.println("AP: END");
 			//System.out.println(novo_vecs.size());

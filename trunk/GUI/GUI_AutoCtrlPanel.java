@@ -4,8 +4,6 @@
 
 package GUI;
 
-// the basic library stuffs
-import Data.DataCollector;
 import Data.SignalStrength;
 import Robot.Protocol;
 import Robot.Tribot;
@@ -54,15 +52,15 @@ public class GUI_AutoCtrlPanel extends JPanel
 	
 	private boolean ServerConnected;
 	
-	private boolean is_alternative = false;
+	//private boolean is_alternative = false;
 	
 	private JButton connectButton;
-	private JButton sendButton;
-	private JTextField TextIP, TextPort, TextInputField;
+	//private JButton sendButton;
+	private JTextField TextIP, TextPort;// TextInputField;
 	private JTextArea TextDisplayField;
 	private JScrollPane Textscroll;
 	
-	private DataCollector collector;
+	//private DataCollector collector;
 
 	// the PDA control
 	private PDA pda_control;
@@ -79,7 +77,7 @@ public class GUI_AutoCtrlPanel extends JPanel
 		
 		pda_control.IP = IP;
 		pda_control.port = Port;
-		collector = new DataCollector("localhost", 520);
+		//collector = new DataCollector("localhost", 520);
 	}
 	
 	
@@ -163,15 +161,18 @@ public class GUI_AutoCtrlPanel extends JPanel
 							enableALL();
 							pda_control.start();
 						}
+						/*else if((!ServerConnected) && (connectButton.getText().equalsIgnoreCase("OFF")))
+						{
+							ServerConnected = false;
+						}*/
 						else
-						{			
-						    
-							if ( ServerConnected )
+						{		
+							/*if ( ServerConnected )
 							{
 								pda_control.disconnectServer();
 								ServerConnected = false;
 								disableALL();
-							}
+							}*/
 						}
 					}
 				};
@@ -202,7 +203,7 @@ public class GUI_AutoCtrlPanel extends JPanel
 	public void enableALL()
 	{
 		connectButton.setEnabled(false);
-		connectButton.setText("OFF");
+		//connectButton.setText("OFF");
 		//sendButton.setEnabled(true);
 	}
 

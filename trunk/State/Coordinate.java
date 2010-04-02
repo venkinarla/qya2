@@ -345,10 +345,10 @@ public class Coordinate
 	}
 	
 	// get an random small grid from within a meta grid
-	public static Coordinate getRandCoord( Integer meta_num )
+	/*public static Coordinate getandCoord( Integer meta_num )
 	{
 		Coordinate coord = new Coordinate();
-		Coordinate boundary = meta_grid.get(meta_num);
+		//Coordinate boundary = meta_grid.get(meta_num);
 		//int x_dist = boundary[1].x - boundary[0].x;
 		//int y_dist = boundary[1].y - boundary[0].y;
 		
@@ -356,7 +356,7 @@ public class Coordinate
 		//coord.y = boundary[0].y + (int)(y_dist * Math.random());
   		
 		return coord;
-	}
+	}*/
 	// get the corresponding coordinate from  a meta grid
 	public static Coordinate getCoord( Integer meta_num ){
 		return meta_grid.get(meta_num);

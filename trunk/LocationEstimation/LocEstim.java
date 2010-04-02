@@ -8,10 +8,7 @@ package LocationEstimation;
 import java.util.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.math.*;
-
 import Data.*;
-import State.Coordinate;
 
 public class LocEstim {
 	public LocEstim() {

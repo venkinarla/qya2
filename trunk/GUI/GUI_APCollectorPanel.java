@@ -33,7 +33,7 @@ public class GUI_APCollectorPanel extends JPanel {
 	JTextArea text_window;
 	JButton scan_button;
 	// JTextField num_sample_field;
-	// JTextField meta_grid_field;
+	JTextField meta_grid_field;
 	private BufferedWriter out = null;
 	private FileWriter fstream = null;
 	private int counter = 1;
@@ -47,7 +47,7 @@ public class GUI_APCollectorPanel extends JPanel {
 	}
 
 	public void initGUI() {
-		setLayout(new BorderLayout(5, 5));
+		setLayout(new BorderLayout(1, 1));
 
 		text_window = new JTextArea();
 		PrintStream printer = new PrintStream(new JTextAreaOutputStream(
@@ -61,35 +61,37 @@ public class GUI_APCollectorPanel extends JPanel {
 		add(text_scroll, BorderLayout.CENTER);
 
 		JPanel param_panel = new JPanel();
-
+		param_panel.setLayout(new GridLayout(1, 1));
 		scan_button = new JButton();
 		scan_button.setText("scan");
 		param_panel.add(scan_button);
 
+		meta_grid_field = new JTextField ();
+		param_panel.add(meta_grid_field);		
 		scan_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				int grid = Integer.parseInt(meta_grid_field.getText());
 				PrintWriter fout = null;
 				try {
-					fout = new PrintWriter(counter + ".txt");
+					fout = new PrintWriter(grid+"[" + counter + "].txt");
 				} catch (IOException e3) {
 					// TODO Auto-generated catch block
 					e3.printStackTrace();
 				}
-				for (int j = 0; j < 30; j++) {
+				for (int j = 0; j < 25; j++) {
 					Vector<SignalVector> sv = DataCollector.Scan(1, 1000);
 					for (int i = 0; i < sv.size(); i++) {
-						fout.println(sv.elementAt(i).dim + "\n");
-
-						text_window.append("Number of APs =  "
-								+ sv.elementAt(i).dim + "\n");
+						fout.println(sv.elementAt(i).dim + " " + grid);
+						//text_window.append("Number of APs =  " + sv.elementAt(i).dim + "\n");
 						for (String mac : sv.elementAt(i).getMacAddr()) {
-							fout.println(mac + " "
-									+ sv.elementAt(i).getRSSI(mac) + "\n");
+							fout.println(mac + " " + sv.elementAt(i).getRSSI(mac));
 						}
 					}
-					fout.close();
-					text_window.append("\n");
+					fout.println("");
 				}
+				text_window.append("25 sets of data collected" + "\n");
+				counter++;
+				fout.close();
 			}
 		});
 

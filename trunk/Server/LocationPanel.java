@@ -3,10 +3,7 @@ package Server;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.PrintWriter;
@@ -22,6 +19,7 @@ import State.Coordinate;
 
 public class LocationPanel extends JPanel
 {
+	private static final long serialVersionUID = -2793372883170917905L;
 	private int startx, starty, endx, endy;				// x,y value of the starting point and ending point
 	private JTextField textStart, textEnd;				// Textfields that display the x, y value			
 	private JButton buttonStart, buttonEnd, buttonGo;	// Buttons

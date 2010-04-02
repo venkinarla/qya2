@@ -18,8 +18,6 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -36,9 +34,6 @@ import javax.swing.*;
 public class UI_Server extends JPanel implements MapControl
 {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 3177827846580167915L;
 	// ********************** data members ***************************	
 	// main layout
@@ -72,6 +67,7 @@ public class UI_Server extends JPanel implements MapControl
 	// location estimation
 	private LocEstim RobotLocCalculation;
 	private Vector<SignalStrength> ss = new Vector<SignalStrength>();
+	private SignalVector sv = new SignalVector();
 	private Vector<SignalVector> vsv = new Vector<SignalVector>();
 	private UI_Protocol comProtocol;
 
@@ -81,7 +77,7 @@ public class UI_Server extends JPanel implements MapControl
 	
 	// the robot, for controlling issue
 	Tribot lego;
-	public static String log_file = "log.lgr";
+	//public static String log_file = "log.lgr";
 	
 	//*************** training data ****************
 	private SignalDatabase training_data;
@@ -91,6 +87,8 @@ public class UI_Server extends JPanel implements MapControl
 	private Coordinate start_state;
 	private Coordinate goal_state;
 	private Grid grid;
+	private int gridnum = -1;
+	private int counter = 0;
 	
 	public void setMove(boolean flag)
 	{
@@ -247,7 +245,6 @@ public class UI_Server extends JPanel implements MapControl
 				}
 			}
 			public void mouseDragged(MouseEvent e) {
-				// TODO Auto-generated method stub
 				
 			}
 		}
@@ -287,6 +284,20 @@ public class UI_Server extends JPanel implements MapControl
 		
 		findButton = new JButton("Find NXT");
 		findButton.setEnabled(false);
+		findButton.addMouseListener(new MouseAdapter()
+			{
+				public void mouseClicked( MouseEvent e )
+				{
+					if (findButton.isEnabled())
+					{
+						printf("Estimating robot location, Please wait...");
+						TextInputField.setText("est");
+						sendMessage();
+						TextInputField.setText("");
+					}
+				}
+			}
+		);		
 		
 		JPanel Messaging = new JPanel();
 		TextInputField = new JTextField();
@@ -471,8 +482,15 @@ public class UI_Server extends JPanel implements MapControl
 			printf("4. GETDATA                                        ( Return the robot's sensors and motors reading");
 			printf("5. GETAP                                               ( Robot will scan and return a list of signal strength records)");
 			printf("6  SAVE [gird cell number]                  ( Save the scanned reading as dataset for the cell number provided)");
-			printf("6. ISOBSTACLE                               ( Detect if there is obstacles around the robot )");
+			printf("7. ISOBSTACLE                               ( Detect if there is obstacles around the robot )");
 			//TODO
+		}
+		else if ((input[0].compareToIgnoreCase("CLEAR") == 0) || (input[0].compareToIgnoreCase("clear") == 0))
+		{
+			printf("Command : " + Message);
+			ss.clear();
+			vsv.clear();
+			printf("Temporary signal records removed!");
 		}
 		else if ((input[0].compareToIgnoreCase("SAVE") == 0) || (input[0].compareToIgnoreCase("save") == 0))
 		{
@@ -485,6 +503,7 @@ public class UI_Server extends JPanel implements MapControl
 					gridnum = Integer.parseInt(input[1]);
 					if (gridnum > 0)
 					{
+						vsv.add(sv);
 						printf("Saving dataset for grid cell number [ " + input[1] +" ]!");
 						training_data.expand(vsv, gridnum);
 						training_data.saveDataSet();
@@ -504,8 +523,13 @@ public class UI_Server extends JPanel implements MapControl
 		}
 		else if (connected)
 		{
-			printf("To Client : " + Message);
+			if (Message.equalsIgnoreCase("getap") && Message.equalsIgnoreCase("est"))
+				printf("To Client : " + Message);
 			out.println(Message);
+			if (input.length == 2)
+			{
+				gridnum = Integer.parseInt(input[1]);
+			}
 		}
 	}
 
@@ -547,7 +571,7 @@ public class UI_Server extends JPanel implements MapControl
 		myUI.setSize(1024, 768);
 		myUI.add(new UI_Server(new Tribot()));
 		myUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		myUI.show();		
+		myUI.setVisible(true);
 	}
 
 
@@ -582,24 +606,23 @@ public class UI_Server extends JPanel implements MapControl
 			String InMessage, OutMessage;
 			
 			// ap signal related parameters
-			boolean GetAP = false;
-			int num_sample = 1;
-			int sample_size = 1;
-			int scan_interval = 4000;
-			if ( robot_mode == 2 )
+			//boolean GetAP = false;
+			//int num_sample = 1;
+			//int sample_size = 1;
+			//int scan_interval = 4000;
+			/*if ( robot_mode == 2 )
 			{
 				num_sample = 1;
-			}
+			}*/
 			
-			Vector<Vector<SignalStrength>> RobotAPSignal = new Vector<Vector<SignalStrength>>();
-			RobotAPSignal.add(new Vector<SignalStrength>());
-			SignalVector curr_sig_vec = new SignalVector();
+			//Vector<Vector<SignalStrength>> RobotAPSignal = new Vector<Vector<SignalStrength>>();
+			//RobotAPSignal.add(new Vector<SignalStrength>());
+			//SignalVector curr_sig_vec = new SignalVector();
 
 			// full path based on meta grid setting
 			Integer[] meta_path = null;
 			int meta_idx = 0; // current meta grid indicator
 			Integer curr_angle = 0; // start angle of the robot, -y by default
-			SignalVector sv = null;
 			
 			// wait for the starting signal
 			while ( !can_move )
@@ -617,15 +640,65 @@ public class UI_Server extends JPanel implements MapControl
 					{
 						if (input[1].compareToIgnoreCase("END") != 0)
 						{
-							printf(input[1] + " " + input[2]);
+							//printf(input[1] + " " + input[2]);
 							ss.add(new SignalStrength(input[1], "", Integer.parseInt(input[2]), -1, -1));
 						}
 						else
 						{
 							sv = new SignalVector(ss);
-							vsv.add(sv);
 							printf(sv.dim + " unique AP(s) were seen! Signal records are stored TEMPORARY!");
 							printf("You can rescan for more signal records or use \"SAVE [Grid cell number]\" to save the data!");
+							
+							if (sv.dim > 15)
+							{
+								vsv.add(sv);
+								printf("Saving dataset for grid cell number [ " + gridnum +" ]!");
+								training_data.expand(vsv, gridnum);
+								training_data.saveDataSet();
+								ss.clear();
+								vsv.clear();
+								printf("Dataset successfully saved! Temporary stored signal records removed!");
+								counter++;
+								// TODO
+							}
+							if (counter < 20)
+							{
+								TextInputField.setText("getap " + gridnum);
+								sendMessage();
+								TextInputField.setText("");
+							}
+							else
+							{
+								counter = 0;
+								printf("DONE!!");
+							}
+						}
+					}
+					else if (input[0].compareToIgnoreCase("EST:") == 0)
+					{
+						if (input[1].compareToIgnoreCase("END") != 0)
+						{
+							//printf(input[1] + " " + input[2]);
+							ss.add(new SignalStrength(input[1], "", Integer.parseInt(input[2]), -1, -1));
+						}
+						else
+						{
+							sv = new SignalVector(ss);
+							//printf(sv.dim + " unique AP(s) were seen!");
+							if (sv.dim < 10)
+							{
+								TextInputField.setText("est");
+								sendMessage();
+								TextInputField.setText("");
+							}
+							else
+							{
+								int estlocation = RobotLocCalculation.knn_estimate(sv, training_data.sig_vec_base, 5);
+								PathMap.setESTxy(Coordinate.getCoord(estlocation).x, Coordinate.getCoord(estlocation).y);
+								PathMap.repaint();
+								printf("Estimated robot location : " + estlocation);
+								ss.clear();
+							}
 						}
 					}
 					Textscroll.getViewport().setViewPosition(new Point(0,Textscroll.getVerticalScrollBar().getMaximum()));
@@ -878,7 +951,7 @@ public class UI_Server extends JPanel implements MapControl
 					}*/
 					/*else
 						printf("From client " + clientSock.getInetAddress().getHostName() + " : " + InMessage + " " + OutMessage);
-						//System.out.println("OUTOUTOTUTOUTOT = " + OutMessage);TODO*/
+						//System.out.println("OUTOUTOTUTOUTOT = " + OutMessage);*/
 					Thread.sleep(100);
 				}
 				

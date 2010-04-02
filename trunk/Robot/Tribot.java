@@ -1,15 +1,11 @@
 package Robot;
 
 import java.io.*;
-import java.util.*;
-
 import lejos.pc.comm.*;
 import lejos.nxt.LightSensor;
-import lejos.nxt.Motor;
 import lejos.nxt.UltrasonicSensor;
 import lejos.nxt.remote.NXTCommand;
 import lejos.nxt.remote.RemoteMotor;
-import lejos.nxt.remote.RemoteMotorPort;
 import lejos.nxt.remote.RemoteSensorPort;
 
 import FileIO.Logging;

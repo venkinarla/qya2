@@ -131,7 +131,7 @@ public class PDA extends Thread
 					//System.out.println("==============================");
 					//System.out.println("Start getting signal data!");
 					//sout.println("Collecting APs signal, Please Wait...");
-					DataCollector.Scan(1, 1000, sout);
+					DataCollector.ScanVirtual(1, 1000, sout);
 					//System.out.println("Signal data collected successfully!");
 					//System.out.println("==============================");
 					

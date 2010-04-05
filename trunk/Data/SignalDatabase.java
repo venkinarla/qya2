@@ -13,7 +13,7 @@ import State.Coordinate;
 
 public class SignalDatabase {
 	// ********************* data member ************************
-	public static String dataset_file = "src/dataset/dataset.txt";
+	public static String dataset_file = "src/dataset/dataset[pda].txt";
 	public static String dataset_file2 = "src/dataset/dataset2.txt";
 	public static String dataset_average = "src/dataset/avgDataset.txt";
 	public Vector<SignalVector> sig_vec_base;
@@ -136,7 +136,7 @@ public class SignalDatabase {
 		System.out.println("Writing average singal dataset Successfully");
 		return result;
 	}
-
+	
 	// preproces the data, take the average of all
 	// the result vector will contain no duplicate elements
 	public static Vector<SignalStrength> preProcess(
@@ -228,6 +228,7 @@ public class SignalDatabase {
 							.split(" ")[0]);
 					meta_grid = Integer
 					.parseInt(curr_read.split(" ")[1]);
+
 					sig_vec_base.add(new SignalVector());
 					sig_vec_base.lastElement().dim = dim;
 					sig_vec_base.lastElement().meta_grid = meta_grid;
@@ -238,9 +239,6 @@ public class SignalDatabase {
 					String[] reading = curr_read.split(" ");
 					sig_vec_base.lastElement().put(reading[0],
 							Integer.parseInt(reading[1]));
-					if(!exist2){
-						sig_vec_base_v.elementAt(meta_grid-1).add(sig_vec_base.lastElement());
-					}
 				}
 			}
 		}
@@ -282,7 +280,7 @@ public class SignalDatabase {
 		
 		if(!exist2) 
 			this.saveDataSet2();
-		if(!exist3){
+		/*if(!exist3){
 			this.processSignal(this.sig_vec_base_v);
 			exist3 = true;
 		}
@@ -317,7 +315,7 @@ public class SignalDatabase {
 				}
 			}
 		}
-		
+		*/
 	}
 	public void saveDataSet2() {
 		PrintWriter fout2 = null;
@@ -343,12 +341,15 @@ public class SignalDatabase {
 			if (curr_vec_vec.size() == 0) {
 				fout2.println("#" + i + 1 + " NO DATA ");
 			} else {
-				for (int j = 0; j < curr_vec_vec.size(); ++j) {
+				System.out.println(curr_vec_vec.size());
+				for (int j = 0; j < curr_vec_vec.size(); j++) {
+					
+					
 					fout2.println("#Grid " + (i + 1) + " Record " + (j + 1));
 					SignalVector curr_vec = curr_vec_vec.get(j);
 					// we only take meaningful result into account
-					if (curr_vec.dim < 6)
-						continue;
+					//if (curr_vec.dim < 6)
+						//continue;
 					// format:$dimension $meta_grid
 					fout2.println(curr_vec.dim + " " + curr_vec.meta_grid);
 					for (String mac_addr : curr_vec.getMacAddr()) {
@@ -358,11 +359,6 @@ public class SignalDatabase {
 					}
 					fout2.println();
 				}
-			}
-			for (int k = curr_vec_vec.size() + 1; k <= 4; k++) {
-				fout2.println("#Grid " + (i + 1) + " Record " + k
-						+ " is missing.");
-				fout2.println();
 			}
 		}
 		fout2.close();
@@ -449,7 +445,7 @@ public class SignalDatabase {
 	public static void main(String[] args) {
 		SignalDatabase database = new SignalDatabase();
 		database.loadDataSet();
-		database.saveDataSet();
+		//database.saveDataSet();
 
 		database.processSignal(database.sig_vec_base_v);
 	}

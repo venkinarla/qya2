@@ -210,6 +210,7 @@ public class LocEstim {
 		int best_grid = -1;
 		double best_prob = 0.0;
 		double curr_prob = 0.0;
+		double penalty = 0.01;
 		HashMap<String, HashMap> profile = null;
 
 		Vector<SignalVector> vsv = null;
@@ -222,28 +223,44 @@ public class LocEstim {
 					if (profile.get(key).containsKey(query.getRSSI(key))) {
 						if (curr_prob == 0.0)
 							curr_prob = 1.0;
-						System.out.println(profile.get(key).get(
+						System.out.println("----"+profile.get(key).get(
 								query.getRSSI(key)));
 						curr_prob *= (Double) (profile.get(key).get(query
 								.getRSSI(key)));
 					}
+					else{
+						if( curr_prob == 0.0 )
+							curr_prob = 1.0;
+						curr_prob *= penalty;
+						//System.out.println(curr_prob+ " !!");
+					}
+				}
+				else{
+					if( curr_prob == 0.0 )
+						curr_prob = 1.0;
+					curr_prob *= penalty*0.1;
+					//System.out.println(curr_prob+ " !!");
 				}
 			}
 			// to compensate the missed APs, using average rssi over the whole
 			// dataset
-			for (String key : rssiAverage.vec.keySet()) {
+			/*for (String key : rssiAverage.vec.keySet()) {
 				if (!query.vec.containsKey(key)) {
 					if (profile.containsKey(key)) {
 						if( profile.get(key).containsKey(rssiAverage.getRSSI(key))){
 							if (curr_prob == 0.0)
 								curr_prob = 1.0;
+							System.out.println(key);
 							curr_prob *= (Double) (profile.get(key)
 									.get(rssiAverage.getRSSI(key)));
 						}
 						
 					}
+					else{
+						curr_prob *= penalty/10/10;
+					}
 				}
-			}
+			}*/
 			System.out.println("****" + curr_prob);
 			if (curr_prob > best_prob) {
 				best_prob = curr_prob;

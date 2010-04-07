@@ -29,7 +29,9 @@ public class Coordinate
 	// the graph representing the relationship between each meta grid
 	public static Map<Integer, Integer[]> meta_grid_graph;
 
-	// initialize the meta grid information from a meta grid definition
+	/**
+	 *  initialize the meta grid information from a meta grid definition
+	 */
 	public static void initMetaGrid()
 	{
 		// get the data from file
@@ -61,8 +63,6 @@ public class Coordinate
 				{
 					int grid_num = Integer.parseInt(input);
 					Coordinate coord_list = new Coordinate(reader.readLine());
-					//coord_list[0] = new Coordinate(reader.readLine());
-					//coord_list[1] = new Coordinate(reader.readLine());
 					meta_grid.put(grid_num, coord_list);
 					input = reader.readLine();
 				}
@@ -73,13 +73,13 @@ public class Coordinate
 			System.err.println("error: cannot read the file");
 			return;
 		}
-		//System.out.println("meta grid spec loaded");
 	}
 	
-	// load the meta grid graph
+	/**
+	 * Loading the meta grid graph.
+	 */
 	public static void initMetaGridGraph()
 	{
-		//System.out.println("loading meta grid map...");
 		meta_grid_graph = new HashMap<Integer, Integer[]>();
 		BufferedReader reader = null;
 		try
@@ -112,7 +112,6 @@ public class Coordinate
 					children[2] = Integer.parseInt(child[2].trim());
 					children[3] = Integer.parseInt(child[3].trim());
 					meta_grid_graph.put(node, children);
-					//System.out.println(node+":"+ children[0]+":"+ children[1]+ ":"+ children[2]+":" + children[3]);
 				}
 				input = reader.readLine();
 			}
@@ -122,13 +121,18 @@ public class Coordinate
 			System.err.println("error: loading the meta grid graph\n"
 					+ e.toString());
 		}
-		//System.out.println("meta grid map loaded");
 	}
 	
+	/**
+	 * Return the angle that used to turn the robot.
+	 * PS. Extra 7 degree due to the carpet on 3rd floor of CSE department.
+	 * 
+	 * @param init_angle
+	 * @param goal_angle
+	 * @return
+	 */
 	public static int transAngle( int init_angle, int goal_angle )
-	// Return the angle that used to turn the robot. 
 	{	
-		// PS. Extra 7 degree due to the carpet on 3rd floor.
 		if (init_angle == 0)
 		{
 			if (goal_angle == 90)
@@ -169,12 +173,193 @@ public class Coordinate
 	}
 	
 	
-	// search the meta grid graph for path planning
-	// return the path from source to destination
-	@SuppressWarnings("unchecked")
-	public static Integer[] search(Integer start, Integer goal)
+	/**
+	 * get the meta grid number for a small grid specified by the coord
+	 * 
+	 * @param coord
+	 * @return the meta grid number
+	 */
+	public static int getGridNum( Coordinate coord )
 	{
-		//Integer[] path = new Integer[100];
+		if (meta_grid == null)
+			initMetaGrid();
+
+		//System.out.println(coord.x +" "+ coord.y);
+		for (int grid_num : meta_grid.keySet())
+		{
+			Coordinate boundary = meta_grid.get(grid_num);
+			/*if (coord.inRect(boundary[0], boundary[1]))
+			{
+				return grid_num;
+			}*/
+			//System.out.println(boundary.x +" "+ boundary.y);
+			if( boundary.x == coord.x && boundary.y == coord.y)
+				return grid_num;
+		}
+		return -1;
+	}
+
+	/**
+	 * Test whether this coordinate is inside the rectangle created by
+	 * the two input coordinate, return true if the answer is yes
+	 *  
+	 * @param coord1
+	 * @param coord2
+	 * @return
+	 */
+	public boolean inRect( Coordinate coord1, Coordinate coord2 )
+	{
+		if (x >= coord1.x && y >= coord1.y && x <= coord2.x && y <= coord2.y)
+			return true;
+		else
+			return false;
+	}
+	
+	// get an random small grid from within a meta grid
+	/*public static Coordinate getandCoord( Integer meta_num )
+	{
+		Coordinate coord = new Coordinate();
+		//Coordinate boundary = meta_grid.get(meta_num);
+		//int x_dist = boundary[1].x - boundary[0].x;
+		//int y_dist = boundary[1].y - boundary[0].y;
+		
+		//coord.x = boundary[0].x + (int)(x_dist * Math.random());
+		//coord.y = boundary[0].y + (int)(y_dist * Math.random());
+  		
+		return coord;
+	}*/
+	
+	/**
+	 *  Getting the corresponding coordinate from  a meta grid.
+	 */
+	public static Coordinate getCoord( Integer meta_num ){
+		return meta_grid.get(meta_num);
+	}
+
+	/**
+	 *  Constructor for the Coordinate class.
+	 *  Setting x and y to 0.
+	 */
+	public Coordinate()
+	{
+		x = 0;
+		y = 0;
+	}
+
+	/**
+	 *  Overloaded constructor for the Coordinate class.
+	 *  Set x and y to the values passed.
+	 *  
+	 * @param inX
+	 * @param inY
+	 */
+	public Coordinate(int inX, int inY)
+	{
+		x = inX;
+		y = inY;
+	}
+
+	/**
+	 * Overloaded constructor for the Coordinate class.
+	 * Set x and y to the values of a Coordinate instance passed.
+	 * 
+	 * @param other
+	 */
+	public Coordinate(Coordinate other)
+	{
+		x = other.x;
+		y = other.y;
+	}
+
+	/**
+	 * Overloaded constructor for the Coordinate class.
+	 * Set x and y to the values specified in the string passed.
+	 * 
+	 * @param coord
+	 */
+	public Coordinate(String coord)
+	{
+		String[] xy = coord.split(",");
+		x = Integer.parseInt(xy[0].substring(4));
+		y = Integer.parseInt(xy[1].substring(5));
+	}
+
+
+	public static int getDirection( Vector<Coordinate> coords )
+	{
+		return 1;
+	}
+
+	/**
+	 * Setting x and y to the values passed.
+	 * 
+	 * @param inX
+	 * @param inY
+	 */
+	public void setXY( int inX, int inY )
+	{
+		x = inX;
+		y = inY;
+	}
+
+	/**
+	 * Returning the distance in meters between two coordinates.
+	 *  
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	public static double distance( Coordinate a, Coordinate b )
+	{
+		double dist_x = Math.abs(a.x - b.x);
+		double dist_y = Math.abs(a.y - b.y);
+		return Math.sqrt((dist_x * dist_x + dist_y * dist_y)) * 0.5;
+	}
+
+	public boolean equals( Coordinate other )
+	{
+		return (this.x == other.x && this.y == other.y);
+	}
+
+	public String toString()
+	{
+		return "x = " + x + ", y = " + y;
+	}
+
+	/**
+	 * Utility for printing the shortest path.
+	 * 
+	 * @param a sequence of grid cells in the path
+	 * @param b destination grid cell number
+	 * @param step number of steps to reach destination
+	 */
+	public static void printPath( Integer[] a, Integer b, Integer step){
+		Integer[] c = new Integer[step];
+		for( int i=0; i<c.length; i++ )
+			c[i] = 0;
+		
+		c[c.length-1] = b;
+		for( int i=c.length-2; i>=0; i-- ){
+			c[i] = a[b];
+			b = c[i];
+		}
+		for( int i=0; i<c.length; i++ ){
+			System.out.print(c[i]+" ");
+		}
+		System.out.println();
+	}
+	
+	/**
+	 * Search the meta grid graph for the shortest path.
+	 *  
+	 * @param start the starting location
+	 * @param goal the destination 
+	 * @param blocked boolean array showing the blocked grid cell(s)
+	 * @return the shortest path from source to destination
+	 */
+	@SuppressWarnings("unchecked")
+	public static Integer[] search(Integer start, Integer goal, Boolean[] blocked)
+	{
 		if ( meta_grid_graph == null )
 			initMetaGridGraph();
 		
@@ -190,13 +375,11 @@ public class Coordinate
 			color[i] = 0;
 			pred[i] = -1;
 			dTime[i] = 999;
-			//minStep[i] = 999;
 		}
 		color[start] = 1;
 		dTime[start] = 0;
-		//minStep[goal] = 0;
 		
-		//BFS 
+		//BFS algorithm
 		Integer u;
 		Boolean found = false;
 		Queue q = new LinkedList() ;
@@ -204,8 +387,12 @@ public class Coordinate
 		q.add(start);
 		while(true){
 			if( found ) break;//path found
-			
+			if( q.isEmpty())
+				break;
 			u = (Integer) q.remove();
+			//u is determined temporarily blocked
+			if( blocked[u-1])
+				continue;
 			color[u]=1;
 			children = meta_grid_graph.get(u);
 			for(int v: children ){
@@ -225,29 +412,7 @@ public class Coordinate
 				}
 			}
 		}
-		/*for( int i=0; i<children.length; i++ ){
-			
-			if( children[i] == -1 )
-				continue;
-			
-			pred[children[i]] = start;
-			if( color[children[i]] == 0 ){
-				RecursiveDFS(children[i], goal, color, pred, dTime, minStep);
-				if( minStep[children[i]]+1 < minStep[start])
-					minStep[start] = minStep[children[i]]+1;
-			}
-			else if( color[children[i]]==2 ){
-				if( dTime[start]+1 < dTime[children[i]]){
-					dTime[children[i]] = 1;
-					pred[children[i]] = start;
-				}
-				if( minStep[children[i]]+1 < minStep[start] ){
-					minStep[start] = minStep[children[i]]+1;
-				}
-			}
-			else continue;
-			
-		}*/
+		
 		if( pred[goal]==-1 )
 			return null;
 		else{
@@ -308,142 +473,21 @@ public class Coordinate
 	}
 */
 	
-	/**
-	 * get the meta grid number for a small grid specified by the coord
-	 * 
-	 * @param coord
-	 * @return the meta grid number
-	 */
-	public static int getGridNum( Coordinate coord )
-	{
-		if (meta_grid == null)
-			initMetaGrid();
-
-		//System.out.println(coord.x +" "+ coord.y);
-		for (int grid_num : meta_grid.keySet())
-		{
-			Coordinate boundary = meta_grid.get(grid_num);
-			/*if (coord.inRect(boundary[0], boundary[1]))
-			{
-				return grid_num;
-			}*/
-			//System.out.println(boundary.x +" "+ boundary.y);
-			if( boundary.x == coord.x && boundary.y == coord.y)
-				return grid_num;
-		}
-		return -1;
-	}
-
-	// test whether this coordinate is inside the rectangle created by
-	// the two input coordinate, return true if the answer is yes
-	public boolean inRect( Coordinate coord1, Coordinate coord2 )
-	{
-		if (x >= coord1.x && y >= coord1.y && x <= coord2.x && y <= coord2.y)
-			return true;
-		else
-			return false;
-	}
-	
-	// get an random small grid from within a meta grid
-	/*public static Coordinate getandCoord( Integer meta_num )
-	{
-		Coordinate coord = new Coordinate();
-		//Coordinate boundary = meta_grid.get(meta_num);
-		//int x_dist = boundary[1].x - boundary[0].x;
-		//int y_dist = boundary[1].y - boundary[0].y;
-		
-		//coord.x = boundary[0].x + (int)(x_dist * Math.random());
-		//coord.y = boundary[0].y + (int)(y_dist * Math.random());
-  		
-		return coord;
-	}*/
-	// get the corresponding coordinate from  a meta grid
-	public static Coordinate getCoord( Integer meta_num ){
-		return meta_grid.get(meta_num);
-	}
-
-	public Coordinate()
-	{
-		x = 0;
-		y = 0;
-	}
-
-	public Coordinate(int inX, int inY)
-	{
-		x = inX;
-		y = inY;
-	}
-
-	public Coordinate(Coordinate other)
-	{
-		x = other.x;
-		y = other.y;
-	}
-
-	public Coordinate(String coord)
-	{
-		String[] xy = coord.split(",");
-		x = Integer.parseInt(xy[0].substring(4));
-		y = Integer.parseInt(xy[1].substring(5));
-	}
-
-	public static int getDirection( Vector<Coordinate> coords )
-	{
-		return 1;
-	}
-
-	public void setXY( int inX, int inY )
-	{
-		x = inX;
-		y = inY;
-	}
-
-	// return the distance in meters
-	public static double distance( Coordinate a, Coordinate b )
-	{
-		double dist_x = Math.abs(a.x - b.x);
-		double dist_y = Math.abs(a.y - b.y);
-		return Math.sqrt((dist_x * dist_x + dist_y * dist_y)) * 0.5;
-	}
-
-	public boolean equals( Coordinate other )
-	{
-		return (this.x == other.x && this.y == other.y);
-	}
-
-	public String toString()
-	{
-		return "x = " + x + ", y = " + y;
-	}
-
-	//utility
-	public static void printPath( Integer[] a, Integer b, Integer step){
-		Integer[] c = new Integer[step];
-		for( int i=0; i<c.length; i++ )
-			c[i] = 0;
-		
-		c[c.length-1] = b;
-		for( int i=c.length-2; i>=0; i-- ){
-			c[i] = a[b];
-			b = c[i];
-		}
-		for( int i=0; i<c.length; i++ ){
-			System.out.print(c[i]+" ");
-		}
-		System.out.println();
-	}
-	
 	public static void main( String[] args )
 	{
 		String coord_str = "x = 39, y = 11";
 		Coordinate coord = new Coordinate(coord_str);
-
+		Boolean[] blocked = new Boolean[106];
+		for( int i=0; i<106; i++ )
+			blocked[i] = false;
+		
 		System.out.println(coord_str);
 		System.out.println(coord.toString());
 		System.out.println(coord.x + " " + coord.y);
 
+		blocked[20] = true; // grid cell 21 is blocked
 		Coordinate.initMetaGrid();
-		Coordinate.search(5, 15);
+		Coordinate.search(5, 25, blocked);
 		System.out.println("Get Grid Num :"+Coordinate.getGridNum(coord));
 	}
 }

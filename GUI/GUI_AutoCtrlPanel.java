@@ -91,7 +91,6 @@ public class GUI_AutoCtrlPanel extends JPanel
 		connectButton = new JButton("ON");
 		TextIP = new JTextField("localhost", 7);
 		TextPort = new JTextField("560", 5);
-		
 		ConnectPanel.setLayout(new GridBagLayout());
 		GridBagConstraints gc = new GridBagConstraints();
 		gc.anchor = GridBagConstraints.EAST;

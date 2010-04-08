@@ -47,27 +47,33 @@ public class GUI_APCollectorPanel extends JPanel {
 	}
 
 	public void initGUI() {
-		setLayout(new BorderLayout(1, 1));
-
+		setLayout(new BorderLayout(5, 5));
+		
+		JPanel param_panel = new JPanel();
+		
+		scan_button = new JButton("Scan");
+		meta_grid_field = new JTextField ("1", 5);
+		param_panel.setLayout(new GridBagLayout());
+		GridBagConstraints gc = new GridBagConstraints();
+		gc.anchor = GridBagConstraints.EAST;
+		gc.fill = GridBagConstraints.BOTH;
+		gc.gridwidth = GridBagConstraints.LINE_START;
+		param_panel.add(scan_button, gc);
+		
+		gc.gridwidth = GridBagConstraints.LINE_END;
+		param_panel.add(meta_grid_field, gc);
 		text_window = new JTextArea();
 		PrintStream printer = new PrintStream(new JTextAreaOutputStream(
 				text_window));
 		System.setOut(printer);
 		// System.setErr(printer);
+		
 		text_window.setEditable(false);
 		JScrollPane text_scroll = new JScrollPane(text_window,
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		add(text_scroll, BorderLayout.CENTER);
-
-		JPanel param_panel = new JPanel();
-		param_panel.setLayout(new GridLayout(1, 1));
-		scan_button = new JButton();
-		scan_button.setText("scan");
-		param_panel.add(scan_button);
-
-		meta_grid_field = new JTextField ();
-		param_panel.add(meta_grid_field);		
+		
 		scan_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int grid = Integer.parseInt(meta_grid_field.getText());
@@ -89,13 +95,13 @@ public class GUI_APCollectorPanel extends JPanel {
 					}
 					fout.println("");
 				}
-				text_window.append("25 sets of data collected" + "\n");
+				text_window.append("25 sets of data for cell [" + grid + "] are collected" + "\n");
 				counter++;
 				fout.close();
 			}
 		});
 
-		add(param_panel, BorderLayout.PAGE_START);
+		add(param_panel, BorderLayout.NORTH);
 	}
 
 	public static void main(String[] args) {

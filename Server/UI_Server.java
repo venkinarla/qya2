@@ -375,12 +375,12 @@ public class UI_Server extends JPanel implements MapControl {
 				// PathMap.setRobxy(-1, -1);
 				PathMap.setPath(null);
 				PathMap.repaint();
-				if (use_remote_device) {
+				/*if (use_remote_device) {
 					printf("Using remote device to control the robot");
 				} else {
 					printf("Using local server to control the robot");
 					lego.configure();
-				}
+				}*/
 
 				String Message = Inputport.getText();
 				if (Message.length() > 0) {
@@ -430,12 +430,12 @@ public class UI_Server extends JPanel implements MapControl {
 				|| (Message.compareToIgnoreCase("help") == 0)) {
 			printf("");
 			printf("Command List");
-			printf("1. HELP                                                ( Display this commnad list)");
+			printf("1. HELP                                                ( Display this commnad list)" );
 			printf("2. MOVE [speed] [duration]                  ( Move the robot forward by the duration [MAX Speed = 720] )");
-			printf("3. TURNANGLE [angle]                        ( Turn the robot by the angle [Positive angle = clockwise])");
-			printf("4. GETDATA                                        ( Return the robot's sensors and motors reading");
-			printf("5. GETAP                                               ( Robot will scan and return a list of signal strength records)");
-			printf("6  SAVE [gird cell number]                  ( Save the scanned reading as dataset for the cell number provided)");
+			printf("3. TURNANGLE [angle]                        ( Turn the robot by the angle [Positive angle = clockwise] )");
+			printf("4. GETDATA                                        ( Return the robot's sensors and motors reading )");
+			printf("5. GETAP                                               ( Robot will scan and return a list of signal strength records )");
+			printf("6  SAVE [cell number]                  ( Save the scanned reading as dataset for the cell number provided )");
 			printf("7. ISOBSTACLE                               ( Detect if there is obstacles around the robot )");
 			// TODO
 		} else if ((input[0].compareToIgnoreCase("CLEAR") == 0)
@@ -564,22 +564,27 @@ public class UI_Server extends JPanel implements MapControl {
 			Integer curr_angle = 0; // start angle of the robot, -y by default
 
 			// wait for the starting signal
-			while (!can_move) {
+			while (!can_move) 
+			{
 				InMessage = in.readLine();
 				String[] input = InMessage.split(" ");
-				if (input[0].compareToIgnoreCase("Front") == 0
-						|| input[0].compareToIgnoreCase("ERROR") == 0
-						|| input[0].compareToIgnoreCase("Warning") == 0) {
+				if (input[0].compareToIgnoreCase("Front") == 0 || input[0].compareToIgnoreCase("ERROR") == 0 || input[0].compareToIgnoreCase("Warning") == 0) 
+				{
 					printf(InMessage);
-				} else if (input[0].compareToIgnoreCase("AP:") == 0) {
-					if (input[1].compareToIgnoreCase("END") != 0) {
-						// printf(input[1] + " " + input[2]);
+				} 
+				else if (input[0].compareToIgnoreCase("AP:") == 0) 
+				{
+					if (input[1].compareToIgnoreCase("END") != 0) 
+					{
+						printf(input[1] + " " + input[2]);
 						ss.add(new SignalStrength(input[1], "", Integer
 								.parseInt(input[2]), -1, -1));
-					} else {
+					} 
+					else 
+					{
 						sv = new SignalVector(ss);
 						vsv.add(sv);
-						printf("Knn :"
+						/*printf("Knn :"
 								+ RobotLocCalculation.knn_estimate(sv,
 										training_data.sig_vec_base, 9));
 						printf("Knn2 :"
@@ -622,12 +627,11 @@ public class UI_Server extends JPanel implements MapControl {
 								+ " unique AP(s) were seen! Signal records are stored TEMPORARY!");
 						printf("You can rescan for more signal records or use \"SAVE [Grid cell number]\" to save the data!");
 						ss.clear();
-						
-						/*sv = new SignalVector(ss);
+					}	*/
 						printf(sv.dim + " unique AP(s) were seen! Signal records are stored TEMPORARY!");
 						printf("You can rescan for more signal records or use \"SAVE [Grid cell number]\" to save the data!");
 						
-						if (sv.dim > 15)
+						/*if (sv.dim > 15)
 						{
 							vsv.add(sv);
 							printf("Saving dataset for grid cell number [ " + gridnum +" ]!");
@@ -649,7 +653,8 @@ public class UI_Server extends JPanel implements MapControl {
 						{
 							counter = 0;
 							printf("DONE!!");
-						}
+						}*/
+					}
 				}
 				else if (input[0].compareToIgnoreCase("EST:") == 0)
 				{
@@ -660,24 +665,30 @@ public class UI_Server extends JPanel implements MapControl {
 					}
 					else
 					{
-						sv = new SignalVector(ss);
-						//printf(sv.dim + " unique AP(s) were seen!");
-						if (sv.dim < 10)
+						if (counter < 2)
 						{
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 							TextInputField.setText("est");
 							sendMessage();
 							TextInputField.setText("");
+							counter++;
 						}
 						else
 						{
-							int estlocation = RobotLocCalculation.knn_estimate(sv, training_data.sig_vec_base, 5);
+							sv = new SignalVector(ss);
+							printf(sv.dim + " unique AP(s) were seen!");
+							int estlocation = RobotLocCalculation.bayesianEstimation(sv, training_data.sig_vec_base_v);
 							PathMap.setESTxy(Coordinate.getCoord(estlocation).x, Coordinate.getCoord(estlocation).y);
 							PathMap.repaint();
 							printf("Estimated robot location : " + estlocation);
 							ss.clear();
+							counter = 0;
 						}
-					}
-				}*/
 					}
 				}
 				Textscroll.getViewport().setViewPosition(
@@ -693,7 +704,7 @@ public class UI_Server extends JPanel implements MapControl {
 						int meta_goal = Coordinate.getGridNum(goal_state);
 						// System.out.println("start meta: " + meta_start + "\n"
 						// + "goal meta: " + meta_goal);
-						meta_path = Coordinate.search(meta_start, meta_goal);
+						meta_path = Coordinate.search(meta_start, meta_goal, new Boolean[106]);
 						PathMap.setPath(meta_path);
 						can_move = true;
 					} else

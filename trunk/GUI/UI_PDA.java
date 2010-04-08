@@ -43,7 +43,7 @@ public class UI_PDA extends JFrame
 	public static void main( String[] args )
 	{
 		UI_PDA myUI = new UI_PDA(new Tribot());
-		myUI.setTitle("Robot Control System");
+		myUI.setTitle("Robot Guiding System");
 		myUI.setSize(400, 520);
 		myUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		myUI.show();

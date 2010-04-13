@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.util.Vector;
 
 import javax.swing.JPanel;
 
@@ -25,6 +26,7 @@ public class MapPanel extends JPanel
 	 	ZoomFactor		: the width/heigth of a grid
 	 */
 	private Integer[] ShortestPath = null;				//shortest path for the robot
+	private Vector<Integer> PossibleBlock = new Vector<Integer>();				//the cells that might have a blockage
 	private byte[][] map;
 
 	public MapPanel(Image inputMap, double inputZoom)
@@ -102,6 +104,7 @@ public class MapPanel extends JPanel
 	// paint the panel
 	public void paintComponent( Graphics g )
 	{
+		PossibleBlock.add(3);
 		super.paintComponent(g);
 		if (image != null)
 		{
@@ -126,6 +129,25 @@ public class MapPanel extends JPanel
 					//System.out.println("HERE = " + ShortestPath[i] + " ^^^ " + Coordinate.getCoord(ShortestPath[i]).x +" &&& "+Coordinate.getCoord(ShortestPath[i]).y);
 				}
 			}
+			if ( !PossibleBlock.isEmpty() )
+			{
+				g.setColor(Color.RED);
+				for ( int i=0; i<PossibleBlock.size(); ++i )
+				{
+					int blockx = Coordinate.getCoord(PossibleBlock.get(i)).x;
+					int blocky = Coordinate.getCoord(PossibleBlock.get(i)).y;
+					g.drawOval(blockx * ZoomFactor + blockx / 4 + 3, 
+							blocky * ZoomFactor + blocky / 4 + 3, 
+							PointSize, PointSize);
+					g.drawOval(blockx * ZoomFactor + blockx / 4 + 5, 
+							blocky * ZoomFactor + blocky / 4 + 5, 
+							PointSize-4, PointSize-4);
+					g.drawOval(blockx * ZoomFactor + blockx / 4 + 7, 
+							blocky * ZoomFactor + blocky / 4 + 7, 
+							PointSize-8, PointSize-8);					
+					//System.out.println("HERE = " + ShortestPath[i] + " ^^^ " + Coordinate.getCoord(ShortestPath[i]).x +" &&& "+Coordinate.getCoord(ShortestPath[i]).y);
+				}
+			}			
 			if (startx != -1 && starty != -1)
 			{
 				// Draw the starting location

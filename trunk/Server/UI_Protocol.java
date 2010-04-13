@@ -174,6 +174,10 @@ public class UI_Protocol {
 		{
 			return "ERROR";
 		}
+		else if ( command[0].equalsIgnoreCase("Front") )
+		{
+			return "Front";
+		}
 		else if (command[0].equalsIgnoreCase("FINISHED"))
 		{
 			return "Robot Movement Finished";

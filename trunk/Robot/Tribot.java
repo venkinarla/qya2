@@ -252,21 +252,21 @@ public class Tribot
 		setSpeed(speed);				// Setup the speed of both motor
 		if ( front_reading >= front_danger_dist && front_reading < 255)	//Check to see if nothing is in front of the robot
 		{
-			right_motor.forward();			// Tell the right motor move forward
 			left_motor.forward();			// Tell the left motor move forward
+			right_motor.forward();			// Tell the right motor move forward
 		}
 											// PS. If in high speed (eg. >400 ) , robot may move to the left because the robot motor move first.
 		
 		int old_left_reading = -1;		// The previous left wing reading
 		int old_right_reading = -1;		// The previous right wing reading
-		System.out.println("Orientation = " + orientation);
+		//System.out.println("Orientation = " + orientation);
 		while ( time_count < duration )
 		{
-			if (totalforward >= 2)
+			/*if (totalforward >= 3)
 			{
 				duration = duration - 10;
 				totalforward = 0;
-			}
+			}*/
 																//--------------------------------------
 			boolean changed = false;							// This indicate if the robot has change the direction because of obstacle
 			
@@ -275,14 +275,14 @@ public class Tribot
 			front_reading = getFrontDist();
 			//System.out.println(getLeftSpeed() + " " + getRightSpeed() + " " + time_count + " " + time_unit);
 																//--------------------------------------
-			if ( front_reading <= front_danger_dist  || front_reading == 255)			// if the robot is about to hit something
+			if ( front_reading <= front_danger_dist)			// if the robot is about to hit something
 			{
 				System.out.println("FRONT HIT = " + front_reading + " HIT TIME = " + time_count + " dur = " + duration);
-				if (time_count + time_unit*2 >= duration)		// Ignore the last bit of distance if it is about the end of the duration
+				/*if (time_count + time_unit*2 >= duration)		// Ignore the last bit of distance if it is about the end of the duration
 				{
 					System.out.println("Chop end");
 					break;										// To bypass some of the grid with the stupid locker. Like Grid 3.
-				}
+				}*/
 				stop();											// Stop the robot
 				if ( left_reading < right_reading )				// if the left side of the robot is nearer to the wall than the right side
 				{
@@ -330,7 +330,7 @@ public class Tribot
 							)
 					{
 						changespeedforward(250,400);				// Slow down the left motor to correct the movement
-						wait(200);
+						wait(250);
 						System.out.println("RIGHT CORRECT");
 					}				
 					else if ( (old_right_reading > right_reading) &&	// if robot moving toward the right side slowly 
@@ -338,7 +338,7 @@ public class Tribot
 							)
 					{
 						changespeedforward(300,400);				// Slow down the left motor to correct the movement
-						wait(200);
+						wait(250);
 						System.out.println("RIGHT SAMLL CORRECT");
 					}
 				}

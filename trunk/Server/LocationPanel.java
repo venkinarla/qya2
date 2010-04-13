@@ -157,14 +157,22 @@ public class LocationPanel extends JPanel
 	{
 		startx = x;
 		starty = y;
-		textStart.setText("X:" + String.valueOf(startx) + "," + "Y:" + String.valueOf(starty));
+		Coordinate Coor = new Coordinate();
+		Coor.x = startx;
+		Coor.y = starty;
+		int cell = Coordinate.getGridNum(Coor);
+		textStart.setText("X:" + String.valueOf(startx) + "," + "Y:" + String.valueOf(starty) + " Cell:" + cell);
 	}
 
 	public void setENDxy( int x, int y ) //Display the X and Y value of the starting point
 	{
 		endx = x;
 		endy = y;
-		textEnd.setText("X:" + String.valueOf(endx) + "," + "Y:" + String.valueOf(endy));
+		Coordinate Coor = new Coordinate();
+		Coor.x = endx;
+		Coor.y = endy;
+		int cell = Coordinate.getGridNum(Coor);
+		textEnd.setText("X:" + String.valueOf(endx) + "," + "Y:" + String.valueOf(endy) + " Cell:" + cell);
 	}
 	
 	public void cleanText() // Remove the displayed value of two textfield.
@@ -180,12 +188,13 @@ public class LocationPanel extends JPanel
 		{
 			PointSize = 15;
 			setBorder(BorderFactory.createTitledBorder(BorderFactory.createLoweredBevelBorder(), "Label"));
-			setLayout(new GridLayout(5, 1));
+			setLayout(new GridLayout(6, 1));
 			setSize(170, 100);
 			add(new JLabel("        : Estimated Location"));
 			add(new JLabel("        : Expected Location"));
 			add(new JLabel("        : Starting Location"));
 			add(new JLabel("        : Destination"));
+			add(new JLabel("        : Possible Blockage"));
 			add(new JLabel("        : Traveling Path"));
 		}
 		public void paintComponent( Graphics g )
@@ -199,10 +208,14 @@ public class LocationPanel extends JPanel
 			g.fillOval(10, 59, PointSize, PointSize);
 			g.setColor(Color.blue);
 			g.fillOval(10, 77, PointSize, PointSize);
+			g.setColor(Color.RED);
+			g.drawOval(10, 95, PointSize, PointSize);
+			g.drawOval(12, 97, PointSize-4, PointSize-4);
+			g.drawOval(14, 99, PointSize-8, PointSize-8);
 			g.setColor(Color.orange);
-			g.fillOval(10, 100, PointSize - 10, PointSize - 10);
-			g.fillOval(15, 100, PointSize - 10, PointSize - 10);
-			g.fillOval(20, 100, PointSize - 10, PointSize - 10);
+			g.fillOval(10, 118, PointSize - 10, PointSize - 10);
+			g.fillOval(15, 118, PointSize - 10, PointSize - 10);
+			g.fillOval(20, 118, PointSize - 10, PointSize - 10);
 		}
 	}
 }

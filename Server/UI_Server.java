@@ -68,6 +68,7 @@ public class UI_Server extends JPanel implements MapControl {
 	private SignalVector sv = new SignalVector();
 	private Vector<SignalVector> vsv = new Vector<SignalVector>();
 	private UI_Protocol comProtocol;
+	private Boolean[] blocked;
 
 	// *************** robot mode *******************
 	private int robot_mode = 2; // 1 for data collection, 2 for exploring
@@ -268,7 +269,8 @@ public class UI_Server extends JPanel implements MapControl {
 			public void mouseClicked(MouseEvent e) {
 				if (findButton.isEnabled()) {
 					printf("Estimating robot location, Please wait...");
-					TextInputField.setText("est");
+					TextInputField.setText("est");	
+					ss.clear();
 					sendMessage();
 					TextInputField.setText("");
 				}
@@ -322,7 +324,7 @@ public class UI_Server extends JPanel implements MapControl {
 		Server_CtrPanel.add(new JLabel(" "), gc);
 
 		Server_CtrPanel.add(LapLocPanel, gc);
-
+		Server_CtrPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLoweredBevelBorder(), "Control Panel"));
 		gc0.gridwidth = GridBagConstraints.RELATIVE;
 		gc0.gridheight = 2;
 		gc0.weightx = 1;
@@ -403,7 +405,12 @@ public class UI_Server extends JPanel implements MapControl {
 		});
 
 		PathMap.setMap(grid.getGridMap());
-
+		blocked = new Boolean[Coordinate.meta_grid.size()];
+		for (int i = 0 ; i < Coordinate.meta_grid.size() ; i++)
+		{
+			blocked[i] = false;
+		}
+		blocked[2] = true;
 		disableALL();
 	}
 
@@ -508,7 +515,7 @@ public class UI_Server extends JPanel implements MapControl {
 			ClassNotFoundException {
 		JFrame myUI = new JFrame();
 		myUI.setTitle("Lego Robot PC Server Control Panel");
-		myUI.setSize(1024, 768);
+		myUI.setSize(1024, 740);
 		myUI.add(new UI_Server(new Tribot()));
 		myUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		myUI.setVisible(true);
@@ -630,7 +637,7 @@ public class UI_Server extends JPanel implements MapControl {
 					}	*/
 						printf(sv.dim + " unique AP(s) were seen! Signal records are stored TEMPORARY!");
 						printf("You can rescan for more signal records or use \"SAVE [Grid cell number]\" to save the data!");
-						
+						printf("==============================================");
 						/*if (sv.dim > 15)
 						{
 							vsv.add(sv);
@@ -665,30 +672,14 @@ public class UI_Server extends JPanel implements MapControl {
 					}
 					else
 					{
-						if (counter < 2)
-						{
-							try {
-								Thread.sleep(1000);
-							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							TextInputField.setText("est");
-							sendMessage();
-							TextInputField.setText("");
-							counter++;
-						}
-						else
-						{
-							sv = new SignalVector(ss);
-							printf(sv.dim + " unique AP(s) were seen!");
-							int estlocation = RobotLocCalculation.bayesianEstimation(sv, training_data.sig_vec_base_v);
-							PathMap.setESTxy(Coordinate.getCoord(estlocation).x, Coordinate.getCoord(estlocation).y);
-							PathMap.repaint();
-							printf("Estimated robot location : " + estlocation);
-							ss.clear();
-							counter = 0;
-						}
+						sv = new SignalVector(ss);
+						printf(sv.dim + " unique AP(s) were seen!");
+						int estlocation = RobotLocCalculation.bayesianEstimation(sv, training_data.sig_vec_base_v);
+						PathMap.setESTxy(Coordinate.getCoord(estlocation).x, Coordinate.getCoord(estlocation).y);
+						PathMap.repaint();
+						printf("Estimated robot location : " + estlocation);
+						printf("==============================================");
+						ss.clear();
 					}
 				}
 				Textscroll.getViewport().setViewPosition(
@@ -704,7 +695,7 @@ public class UI_Server extends JPanel implements MapControl {
 						int meta_goal = Coordinate.getGridNum(goal_state);
 						// System.out.println("start meta: " + meta_start + "\n"
 						// + "goal meta: " + meta_goal);
-						meta_path = Coordinate.search(meta_start, meta_goal, new Boolean[106]);
+						meta_path = Coordinate.search(meta_start, meta_goal, blocked);
 						PathMap.setPath(meta_path);
 						can_move = true;
 					} else
@@ -712,9 +703,10 @@ public class UI_Server extends JPanel implements MapControl {
 				}
 
 				// conduct the moving stuffs
-				if (can_move) {
+				if (can_move) 
+				{
 					// ask for state information
-					out.println("getdata");
+					out.println("temp");
 					/*
 					 * //TODO // start requesting ap signal data RobotAPSignal =
 					 * new Vector<Vector<SignalStrength>>();
@@ -729,26 +721,49 @@ public class UI_Server extends JPanel implements MapControl {
 				// listen to incoming message
 				try {
 					InMessage = in.readLine();
-
+					String[] input = InMessage.split(" ");
+					
 					if (InMessage == null || InMessage.equals("Bye")) {
 						connected = false;
 						break;
 					} else if (InMessage.compareToIgnoreCase("OK") == 0) {
-						// printf("Robot Fucking Turned!");
 					}
 					// while a sequence of command is finished
 					else if (InMessage.compareToIgnoreCase("FINISHED") == 0) {
 						can_move = true;
 						// System.out.println("AT FINISHED");
 					}
-
+					else if (input[0].compareToIgnoreCase("EST:") == 0)
+					{
+						if (input[1].compareToIgnoreCase("END") != 0)
+						{
+							//printf(input[1] + " " + input[2]);
+							ss.add(new SignalStrength(input[1], "", Integer.parseInt(input[2]), -1, -1));
+						}
+						else
+						{
+							sv = new SignalVector(ss);
+							printf(sv.dim + " unique AP(s) were seen!");
+							int estlocation = RobotLocCalculation.bayesianEstimation(sv, training_data.sig_vec_base_v);
+							PathMap.setESTxy(Coordinate.getCoord(estlocation).x, Coordinate.getCoord(estlocation).y);
+							PathMap.repaint();
+							printf("Estimated robot location : " + estlocation);
+							printf("==============================================");
+							ss.clear();
+							break;
+							//TODO
+						}
+					}
 					// get all the sensors and motors readings from the device
 					// and log the current state of the robot into the log file
 					else if (InMessage.length() > 5
-							&& InMessage.substring(0, 5).equalsIgnoreCase(
+							&& (InMessage.substring(0, 5).equalsIgnoreCase(
 									"FRONT")
 							|| InMessage.substring(0, 5).equalsIgnoreCase(
-									"ERROR")) {
+									"ERROR")
+							|| InMessage.substring(0, 5).equalsIgnoreCase(
+									"Robot")		
+									)) {
 						// System.out.println("AT getdata");
 						// log the state data
 						// String[] data_in = InMessage.substring(7).split(",");
@@ -784,6 +799,7 @@ public class UI_Server extends JPanel implements MapControl {
 						 * continue; }
 						 */
 						int curr_meta_state = meta_path[meta_idx];
+						
 						if (curr_meta_state != Coordinate
 								.getGridNum(goal_state)) {
 							int next_meta_state = meta_path[++meta_idx];
@@ -825,7 +841,12 @@ public class UI_Server extends JPanel implements MapControl {
 							PathMap.setRobxy(Destination.x, Destination.y);
 							PathMap.repaint();
 							printf("Robot reach the destination successfully!");
-							break;
+							printf("==============================================");
+							//TODO
+							TextInputField.setText("est");
+							sendMessage();
+							TextInputField.setText("");
+							//break;
 						}
 					}
 
@@ -931,8 +952,9 @@ public class UI_Server extends JPanel implements MapControl {
 			}
 			connected = false;
 			disableALL();
-			printf("DisConnected!");
+			printf("Self-Guiding Function Ended! Disconnecting from Client!");
 			ServerClose();
+			printf("Connection to the Client has been disconnected!");
 			createServer.setEnabled(true);
 			createServer.setText("Start Server!");
 		} catch (IOException e) {
@@ -987,7 +1009,7 @@ public class UI_Server extends JPanel implements MapControl {
 	public static int stateTransCommand(Integer meta1, Integer meta2,
 			Integer angle, PrintWriter out) {
 		String command1 = null; // Command to turn the robot
-		String command2 = "MOVE 400 70"; // Command to move forward. [MOVE 450
+		String command2 = "MOVE 430 70"; // Command to move forward. [MOVE 450
 		// 10] about 25~30 cm.
 
 		Integer[] children = Coordinate.meta_grid_graph.get(meta1); // Get the

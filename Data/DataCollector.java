@@ -149,17 +149,37 @@ public class DataCollector extends Thread
 	public static void estimate( int num_sample, int interval, PrintWriter out )
 	{
 		Vector<SignalVector> vecs = null;
+		SignalVector sv = new SignalVector();
 		do
 		{
-			vecs = Scan(num_sample, interval);
+			vecs =Scan(num_sample, interval);
 		}while (vecs == null);
+		HashMap<String,Integer> map = new HashMap<String,Integer>();
+		HashMap<String,Integer> counter = new HashMap<String,Integer>();
+		for( int i=0; i < 10; i++)
+		{
+			sv = vecs.elementAt(i);
+			for( String key : sv.vec.keySet()){
+				if( map.containsKey(key)){
+					map.put(key, map.get(key)+sv.getRSSI(key));
+					counter.put(key, counter.get(key)+1);
+				}
+				else{
+					map.put(key, sv.getRSSI(key));
+					counter.put(key,1);
+				}
+			}
+		}
+		for( String key: map.keySet()){
+			map.put(key, map.get(key)/counter.get(key));
+		}
 		
 		for ( int i=0; i < vecs.size(); ++i )
 		{
-			SignalVector sig_vec = vecs.get(i);
-			for ( String mac_addr : sig_vec.getMacAddr() )
+			//SignalVector sig_vec = vecs.get(i);
+			for ( String mac_addr : map.keySet() )
 			{
-				out.println("EST: " + mac_addr + " " + sig_vec.getRSSI(mac_addr));
+				out.println("EST: " + mac_addr + " " + map.get(mac_addr));
 			}
 		}
 		out.println("EST: END");
@@ -213,10 +233,10 @@ public class DataCollector extends Thread
 		
 		for ( String mac_add : sv.getMacAddr() )
 		{
-			out.println("AP: " + mac_add + " " + sv.getRSSI(mac_add));
+			out.println("EST: " + mac_add + " " + sv.getRSSI(mac_add));
 			
 		}
-		out.println("AP: END");
+		out.println("EST: END");
 	}
 	
 	// scan

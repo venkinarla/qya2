@@ -83,15 +83,6 @@ public class PDA extends Thread
 				//	connectDevice();
 			}
 			runServer();
-
-			try
-			{
-				Thread.sleep(3000);
-			}
-			catch (InterruptedException e)
-			{
-				//System.err.println("error: server failed to initialize");
-			}
 		}
 	}
 	
@@ -119,13 +110,14 @@ public class PDA extends Thread
 					System.out.println("Closing connection...");
 					break;
 				}
-				else if (in_msg.equalsIgnoreCase("est") || in_msg.equalsIgnoreCase("EST"))
+				else if (in_msg.equalsIgnoreCase("EST"))
 				{
 					//sout.println("Estimating robot location, Please Wait...");
-					DataCollector.estimate(1, 1000, sout);
+					//DataCollector.estimate(10, 1000, sout);
+					DataCollector.ScanVirtual(10, 1000, sout);
 				}
 				// collect ap data and send back to server
-				else if ( input[0].equalsIgnoreCase("getap") || input[0].equalsIgnoreCase("getap"))
+				else if (input[0].equalsIgnoreCase("getap"))
 				{
 					// e.g. getap num_sample scan_interval
 					//System.out.println("==============================");
@@ -158,7 +150,7 @@ public class PDA extends Thread
 					lego.runProgram("GrabBall.nxj");
 				}*/
 
-				else if ( in_msg.equalsIgnoreCase("getdata") || in_msg.equalsIgnoreCase("GETDATA"))
+				else if (in_msg.equalsIgnoreCase("getdata"))
 				{
 					if ( lego.isConnected() )
 					{
@@ -168,8 +160,8 @@ public class PDA extends Thread
 							"Left : [" + lego.getLeftDist() + "]  " + 
 							"Right : [" + lego.getRightDist() + "]  " +  
 							"Left speed : [" + lego.getLeftSpeed() + "]  " + 
-							"Right speed : [" + lego.getRightSpeed() + "]  " +
-							"Light reading : [" + lego.getFrontLight() + "]"
+							"Right speed : [" + lego.getRightSpeed() + "]  " 
+							//"Light reading : [" + lego.getFrontLight() + "]"
 						);
 					}
 					else
@@ -178,7 +170,7 @@ public class PDA extends Thread
 					}
 					continue;
 				}
-				else if ( in_msg.equalsIgnoreCase("isobstacle") || in_msg.equalsIgnoreCase("ISOBSTACLE"))
+				else if ( in_msg.equalsIgnoreCase("isobstacle"))
 				{
 					if ( lego.isConnected() )
 					{
@@ -191,11 +183,11 @@ public class PDA extends Thread
 							"Left : [" + left + "]  " + 
 							"Right : [" + right + "]"
 						);
-						if (front <= 40 || front == 255)
+						if (front <= 40)
 							sout.println("Warning : Obstacle detected at the FRONT of the robot!");
-						if (left <= 40 || left == 255)
+						if (left <= 40)
 							sout.println("Warning : Obstacle detected at the LEFT side of the robot!");
-						if (right <= 40 || right == 255)
+						if (right <= 40)
 							sout.println("Warning : Obstacle detected at the RIGHT side of the robot!");
 					}
 					else
@@ -204,10 +196,15 @@ public class PDA extends Thread
 					}
 					continue;					
 				}
+				else if ( in_msg.equalsIgnoreCase("temp"))
+				{
+					sout.println("Robot travelling...");
+					continue;
+				}
 				else
 				{
 					// running the moving commands
-
+ 
 					// process the command just received
 					String out_msg = comm_protocol.processInput(in_msg);
 					//TODO
@@ -223,7 +220,7 @@ public class PDA extends Thread
 			}
 			catch (Exception e)
 			{
-				System.err.println("Server Error: " + e.getMessage());
+				e.printStackTrace();
 				break;
 			}
 		}

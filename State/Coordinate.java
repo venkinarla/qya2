@@ -14,7 +14,7 @@ import java.util.*;
 // used for something
 public class Coordinate
 {
-	public static final int correctangle = 0;
+	public static final int correctangle = 7;
 	public int x, y;
 	
 	// the grid data files
@@ -480,14 +480,14 @@ public class Coordinate
 		Boolean[] blocked = new Boolean[106];
 		for( int i=0; i<106; i++ )
 			blocked[i] = false;
-		
+		blocked[2] = true;
 		System.out.println(coord_str);
 		System.out.println(coord.toString());
 		System.out.println(coord.x + " " + coord.y);
 
 		blocked[20] = true; // grid cell 21 is blocked
 		Coordinate.initMetaGrid();
-		Coordinate.search(5, 25, blocked);
+		Coordinate.search(1, 7, blocked);
 		System.out.println("Get Grid Num :"+Coordinate.getGridNum(coord));
 	}
 }

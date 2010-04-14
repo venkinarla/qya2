@@ -233,12 +233,59 @@ public class DataCollector extends Thread
 		
 		for ( String mac_add : sv.getMacAddr() )
 		{
+			out.println("AP: " + mac_add + " " + sv.getRSSI(mac_add));
+			
+		}
+		out.println("AP: END");
+	}
+	
+	public static void ScanVirtual2( int num_sample, int interval, PrintWriter out )
+	{
+		//SignalDatabase db = new SignalDatabase();
+		String signal = "src/dataset/VirtualSignal";
+		Vector<SignalStrength> ss = new Vector<SignalStrength>();
+		SignalVector sv =  new SignalVector();
+		
+		//db.loadDataSet();
+		
+		Scanner fin = null;
+		try
+		{
+			fin = new Scanner(new FileInputStream(signal));
+		}
+		catch (FileNotFoundException e)
+		{
+			System.err.println("loading signal data error: the file " + 
+					signal + " is not found." );
+			System.err.println(e.toString());
+			return;
+		}
+		
+		Vector<String> lines = new Vector<String>();
+		String mac, name;
+		int rssi, x, y;
+		while( fin.hasNextLine()){
+			lines.add(fin.nextLine().trim());
+		}
+		
+		for( int i=0; i<lines.size(); i++ ){
+			String[] reading = lines.elementAt(i).split(" ");
+			mac = reading[0];
+			rssi = Integer.parseInt(reading[1]);
+			name = "Test";
+			x = 1;
+			y = 1;
+			ss.add(new SignalStrength(mac, name, rssi, x, y));
+		}
+		sv = new SignalVector(ss);
+		
+		for ( String mac_add : sv.getMacAddr() )
+		{
 			out.println("EST: " + mac_add + " " + sv.getRSSI(mac_add));
 			
 		}
 		out.println("EST: END");
 	}
-	
 	// scan
 	// return format: 
 	//			AP: MAC_ADDR SSID RSSI

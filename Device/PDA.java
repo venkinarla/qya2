@@ -77,7 +77,7 @@ public class PDA extends Thread
 			{
 				if ( !lego.isConnected() )
 				{
-					//connectRobot();
+					connectRobot();
 				}
 				//if ( !dev_connected )
 				//	connectDevice();
@@ -102,9 +102,7 @@ public class PDA extends Thread
 				// receive pc server command
 				String in_msg = sin.readLine();
 				String [] input = in_msg.split(" ");
-				if (!in_msg.equalsIgnoreCase("BYPASS") && !in_msg.equalsIgnoreCase("GETDATA"))
 					System.out.println("From PC Server: " + in_msg);
-				
 				if ( in_msg == null || in_msg.equalsIgnoreCase("Bye") )
 				{
 					System.out.println("Closing connection...");
@@ -114,7 +112,7 @@ public class PDA extends Thread
 				{
 					//sout.println("Estimating robot location, Please Wait...");
 					//DataCollector.estimate(10, 1000, sout);
-					DataCollector.ScanVirtual(10, 1000, sout);
+					DataCollector.ScanVirtual2(10, 1000, sout);
 				}
 				// collect ap data and send back to server
 				else if (input[0].equalsIgnoreCase("getap"))
@@ -123,7 +121,7 @@ public class PDA extends Thread
 					//System.out.println("==============================");
 					//System.out.println("Start getting signal data!");
 					//sout.println("Collecting APs signal, Please Wait...");
-					DataCollector.Scan(1, 1000, sout);
+					DataCollector.ScanVirtual(1, 1000, sout);
 					//System.out.println("Signal data collected successfully!");
 					//System.out.println("==============================");
 					

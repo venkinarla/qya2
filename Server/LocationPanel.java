@@ -63,6 +63,7 @@ public class LocationPanel extends JPanel
 				if (!buttonGo.isEnabled())
 					return ;
 				out.println("BYPASS");
+				out.println("BYPASS");
 				parentPanel.setMovePath(new Coordinate(startx, starty),
 						new Coordinate(endx, endy));
 				parentPanel.setMove(true);

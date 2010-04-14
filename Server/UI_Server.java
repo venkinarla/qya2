@@ -26,6 +26,7 @@ import java.awt.event.MouseMotionListener;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import javax.swing.*;
@@ -299,6 +300,7 @@ public class UI_Server extends JPanel implements MapControl {
 		// create the mode selection list
 		mode_button = new JButton();
 		mode_button.setText("Guiding Mode");
+		robot_mode = 2;
 		mode_button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (robot_mode == 1) {
@@ -410,7 +412,7 @@ public class UI_Server extends JPanel implements MapControl {
 		{
 			blocked[i] = false;
 		}
-		blocked[2] = true;
+		//blocked[2] = true;
 		disableALL();
 	}
 
@@ -474,14 +476,11 @@ public class UI_Server extends JPanel implements MapControl {
 			} catch (NumberFormatException e) {
 				printf("ERROR : Invalid grid cell number!");
 			}
-		} else if (connected) {
-			if (Message.equalsIgnoreCase("getap")
-					&& Message.equalsIgnoreCase("est"))
+		} else if (connected) {			
+			if (!Message.equalsIgnoreCase("getap")
+					&& !Message.equalsIgnoreCase("est"))
 				printf("To Client : " + Message);
 			out.println(Message);
-			if (input.length == 2) {
-				gridnum = Integer.parseInt(input[1]);
-			}
 		}
 	}
 
@@ -569,7 +568,8 @@ public class UI_Server extends JPanel implements MapControl {
 			Integer[] meta_path = null;
 			int meta_idx = 0; // current meta grid indicator
 			Integer curr_angle = 0; // start angle of the robot, -y by default
-
+			int iter = 0;
+			boolean collected = true;
 			// wait for the starting signal
 			while (!can_move) 
 			{
@@ -686,18 +686,81 @@ public class UI_Server extends JPanel implements MapControl {
 						new Point(0, Textscroll.getVerticalScrollBar()
 								.getMaximum()));
 			}
+			ArrayList<Integer> collectpath = new ArrayList<Integer>();
 			while (true) {
 				// request a new path
 				if (meta_path == null) {
 					if (start_state != null && goal_state != null) {
-						meta_idx = 0;
-						int meta_start = Coordinate.getGridNum(start_state);
-						int meta_goal = Coordinate.getGridNum(goal_state);
-						// System.out.println("start meta: " + meta_start + "\n"
-						// + "goal meta: " + meta_goal);
-						meta_path = Coordinate.search(meta_start, meta_goal, blocked);
-						PathMap.setPath(meta_path);
-						can_move = true;
+						if (robot_mode == 2)
+						{
+							meta_idx = 0;
+							int meta_start = Coordinate.getGridNum(start_state);
+							int meta_goal = Coordinate.getGridNum(goal_state);
+							// System.out.println("start meta: " + meta_start + "\n"
+							// + "goal meta: " + meta_goal);
+							meta_path = Coordinate.search(meta_start, meta_goal, blocked);
+							PathMap.setPath(meta_path);
+							can_move = true;
+						}
+						else
+						{
+							meta_idx = 0;
+							int meta_start = Coordinate.getGridNum(start_state);
+							int meta_goal = Coordinate.getGridNum(goal_state);
+							//Integer [] temp = null;
+							Integer [] temp2 = null;	
+							collectpath = new ArrayList<Integer>();
+							ArrayList<Integer[]> allpath = new ArrayList<Integer[]>();
+							
+							if (meta_goal > meta_start)
+							{
+								for (int i = meta_start; i < meta_goal; i++)
+								{
+									collectpath.add(i);
+									allpath.add(Coordinate.search(i, i+1, blocked));
+								}
+							}
+							else
+							{
+								for (int i = meta_start; i > meta_goal; i--)
+								{
+									//System.out.println(i + "-" + (i-1));
+									collectpath.add(i);
+									allpath.add(Coordinate.search(i, i-1, blocked));
+								}
+							}
+							int totallength = 0;
+							for (int i = 0; i < allpath.size(); i++)
+							{
+								//System.out.println(allpath.get(i).length);
+								totallength += allpath.get(i).length;
+								/*for (int j = 0; j < allpath.get(i).length; j++)
+								{
+									System.out.print(allpath.get(i)[j] + " ");
+								}
+								System.out.println();*/
+							}
+							totallength = totallength - (allpath.size() - 1);
+							int counter = allpath.get(0).length;
+							temp2 = new Integer[totallength];
+							for (int i = 0; i<allpath.get(0).length;i++)
+							{
+								temp2[i] = allpath.get(0)[i];
+							}
+							for (int i = 1; i<allpath.size();i++)
+							{
+								for (int j = 1 ; j <allpath.get(i).length ; j++)
+								{
+									temp2[counter] = allpath.get(i)[j];
+									counter++;
+								}
+							}
+							//for (int i = 0; i< temp2.length;i++)
+								//System.out.print(temp2[i] + " - ");
+							meta_path = temp2;
+							PathMap.setPath(meta_path);
+							can_move = true;
+						}
 					} else
 						continue;
 				}
@@ -719,6 +782,7 @@ public class UI_Server extends JPanel implements MapControl {
 				}
 
 				// listen to incoming message
+				
 				try {
 					InMessage = in.readLine();
 					String[] input = InMessage.split(" ");
@@ -754,6 +818,32 @@ public class UI_Server extends JPanel implements MapControl {
 							//TODO
 						}
 					}
+					else if (input[0].compareToIgnoreCase("AP:") == 0) 
+					{
+						if (input[1].compareToIgnoreCase("END") != 0) 
+						{
+							//printf(input[1] + " " + input[2]);
+							ss.add(new SignalStrength(input[1], "", Integer
+									.parseInt(input[2]), -1, -1));
+						} 
+						else 
+						{
+							int curr_meta_state = meta_path[meta_idx-1];
+							sv = new SignalVector(ss);
+							vsv.add(sv);
+							printf(sv.dim + " unique AP(s) were seen!");
+							vsv.add(sv);
+							printf("Saving dataset for grid cell number [ " + curr_meta_state +" ]!");
+							training_data.expand(vsv, curr_meta_state);
+							//training_data.saveDataSet();
+							ss.clear();
+							vsv.clear();
+							printf("Dataset successfully saved!");
+							ss.clear();	
+							printf("==============================================");
+							// TODO
+						}
+					}
 					// get all the sensors and motors readings from the device
 					// and log the current state of the robot into the log file
 					else if (InMessage.length() > 5
@@ -764,6 +854,20 @@ public class UI_Server extends JPanel implements MapControl {
 							|| InMessage.substring(0, 5).equalsIgnoreCase(
 									"Robot")		
 									)) {
+						if (robot_mode == 1)
+						{
+								if (iter < collectpath.size())
+								{
+									if (meta_path[meta_idx] == collectpath.get(iter))
+									{
+										TextInputField.setText("getap");
+										sendMessage();
+										TextInputField.setText("");
+										iter++;
+										collected = true;
+									}
+								}
+						}
 						// System.out.println("AT getdata");
 						// log the state data
 						// String[] data_in = InMessage.substring(7).split(",");
@@ -799,9 +903,7 @@ public class UI_Server extends JPanel implements MapControl {
 						 * continue; }
 						 */
 						int curr_meta_state = meta_path[meta_idx];
-						
-						if (curr_meta_state != Coordinate
-								.getGridNum(goal_state)) {
+						if (meta_idx != meta_path.length -1 ) {
 							int next_meta_state = meta_path[++meta_idx];
 							// display the current position on the map
 							Coordinate curr_path_state = Coordinate
@@ -832,8 +934,17 @@ public class UI_Server extends JPanel implements MapControl {
 								break;
 							}
 							printf("Robot current position: " + curr_meta_state);
-							printf("==============================================");
-						} else {
+							if (robot_mode != 1 )
+								printf("==============================================");
+							else if (!collected)
+							{
+								printf("==============================================");
+							}
+							else
+								collected = false;
+						} else
+						{
+							meta_idx++;
 							// Robot reach the destination
 							Coordinate Destination = Coordinate
 									.getCoord(curr_meta_state);
@@ -841,12 +952,22 @@ public class UI_Server extends JPanel implements MapControl {
 							PathMap.setRobxy(Destination.x, Destination.y);
 							PathMap.repaint();
 							printf("Robot reach the destination successfully!");
-							printf("==============================================");
 							//TODO
-							TextInputField.setText("est");
-							sendMessage();
-							TextInputField.setText("");
-							//break;
+							if (robot_mode != 1 )
+							{
+								printf("==============================================");
+								TextInputField.setText("est");
+								sendMessage();
+								TextInputField.setText("");
+							}
+							else
+							{
+								TextInputField.setText("getap");
+								sendMessage();
+								TextInputField.setText("est");
+								sendMessage();
+								TextInputField.setText("");
+							}
 						}
 					}
 
@@ -952,7 +1073,14 @@ public class UI_Server extends JPanel implements MapControl {
 			}
 			connected = false;
 			disableALL();
-			printf("Self-Guiding Function Ended! Disconnecting from Client!");
+			if (robot_mode == 2)
+			{
+				printf("Self-Guiding Function Ended! Disconnecting from Client!");
+			}
+			else
+			{
+				printf("Auto Data Collection Ended! Disconnecting from Client!");
+			}
 			ServerClose();
 			printf("Connection to the Client has been disconnected!");
 			createServer.setEnabled(true);
@@ -965,8 +1093,6 @@ public class UI_Server extends JPanel implements MapControl {
 			createServer.setEnabled(true);
 			disableALL();
 		}
-
-		ServerClose();
 	}
 
 	public void ServerClose() {

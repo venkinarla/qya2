@@ -14,7 +14,7 @@ import java.util.*;
 // used for something
 public class Coordinate
 {
-	public static final int correctangle = 7;
+	public static final int correctangle = 3;
 	public int x, y;
 	
 	// the grid data files

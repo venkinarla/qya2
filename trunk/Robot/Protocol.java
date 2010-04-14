@@ -161,10 +161,9 @@ public class Protocol
 					commandValue1 = Integer.parseInt(command[1]);
 					commandValue2 = Integer.parseInt(command[2]);
 				case GETAP:
-					if (command.length != 3)
+					if (command.length != 2)
 						return false;
 					commandValue1 = Integer.parseInt(command[1]);
-					commandDuration = Integer.parseInt(command[2]);
 					break;
 				case ISOBSTACLE:
 					return true;

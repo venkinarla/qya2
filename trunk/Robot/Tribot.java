@@ -330,7 +330,7 @@ public class Tribot
 							)
 					{
 						changespeedforward(250,400);				// Slow down the left motor to correct the movement
-						wait(250);
+						wait(200);
 						System.out.println("RIGHT CORRECT");
 					}				
 					else if ( (old_right_reading > right_reading) &&	// if robot moving toward the right side slowly 
@@ -338,7 +338,7 @@ public class Tribot
 							)
 					{
 						changespeedforward(300,400);				// Slow down the left motor to correct the movement
-						wait(250);
+						wait(200);
 						System.out.println("RIGHT SAMLL CORRECT");
 					}
 				}

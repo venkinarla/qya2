@@ -17,19 +17,28 @@ import javax.swing.JTextField;
 
 import State.Coordinate;
 
+/**
+ * The Class location panel at the left side of the server UI.
+ */
 public class LocationPanel extends JPanel
 {
 	private static final long serialVersionUID = -2793372883170917905L;
+	
 	private int startx, starty, endx, endy;				// x,y value of the starting point and ending point
-	private JTextField textStart, textEnd;				// Textfields that display the x, y value			
-	private JButton buttonStart, buttonEnd, buttonGo;	// Buttons
+	private JTextField textStart, textEnd;				// Text fields that display the x, y value			
+	private JButton buttonStart, buttonEnd, buttonGo;	// Three different Buttons
 	private MapControl parentPanel;						// The main map panel
 	public PrintWriter out;								// Output stream used to bypass readln
 
+	/**
+	 * Instantiates a new location panel.
+	 * 
+	 * @param InParent the parent panel
+	 */
 	public LocationPanel(MapControl InParent)
 	{
 		parentPanel = InParent;
-		textStart = new JTextField("");
+		textStart = new JTextField("");	
 		textStart.setHorizontalAlignment(JTextField.CENTER);
 		textEnd = new JTextField("");
 		textEnd.setHorizontalAlignment(JTextField.CENTER);
@@ -40,7 +49,7 @@ public class LocationPanel extends JPanel
 			{
 				if (!buttonStart.isEnabled())
 					return ;				
-				parentPanel.OffEndMonitor();
+				parentPanel.OffEndMonitor();						// Tell the server UI that the start location button is clicked
 				parentPanel.OnStartMonitor();
 			}
 		});
@@ -51,7 +60,7 @@ public class LocationPanel extends JPanel
 			{
 				if (!buttonEnd.isEnabled())
 					return ;
-				parentPanel.OffStartMonitor();
+				parentPanel.OffStartMonitor();						// Tell the server UI that the destination button is clicked
 				parentPanel.OnEndMonitor();
 			}
 		});
@@ -62,11 +71,10 @@ public class LocationPanel extends JPanel
 			{
 				if (!buttonGo.isEnabled())
 					return ;
+				out.println("BYPASS");								// This two commands is used to tell the client to start self-guiding or auto data collection
 				out.println("BYPASS");
-				out.println("BYPASS");
-				parentPanel.setMovePath(new Coordinate(startx, starty),
-						new Coordinate(endx, endy));
-				parentPanel.setMove(true);
+				parentPanel.setMovePath(new Coordinate(startx, starty), new Coordinate(endx, endy)); // Setup the starting location and destination for the server UI.
+				parentPanel.setMove(true);							// Tell the server UI to start self-guiding or auto data collection
 				parentPanel.started();
 				buttonStart.setEnabled(false);
 				buttonEnd.setEnabled(false);
@@ -97,7 +105,10 @@ public class LocationPanel extends JPanel
 		add(tempPanel, BorderLayout.SOUTH);
 	}
 
-	public void disableALL()//Disable all buttons
+	/**
+	 * Disable all buttons.
+	 */
+	public void disableALL()
 	{
 		buttonStart.setEnabled(false);
 		buttonEnd.setEnabled(false);
@@ -106,7 +117,10 @@ public class LocationPanel extends JPanel
 		textEnd.setEditable(false);
 	}
 
-	public void enableALL() //Enable all buttons
+	/**
+	 * Enable all buttons.
+	 */
+	public void enableALL()
 	{
 		buttonStart.setEnabled(true);
 		buttonEnd.setEnabled(true);
@@ -115,6 +129,11 @@ public class LocationPanel extends JPanel
 		textEnd.setEditable(true);
 	}
 
+	/**
+	 * The main method.
+	 * 
+	 * @param args the arguments
+	 */
 	public static void main( String[] args )
 	{
 		JFrame myUI = new JFrame();
@@ -145,16 +164,20 @@ public class LocationPanel extends JPanel
 			public void setMove( boolean flag )
 			{
 			}
-
 			public void started() {
-				
 			}
 		}));
 		myUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		myUI.show();
+		myUI.setVisible(true);
 	}
 
-	public void setSTxy( int x, int y ) //Display the X and Y value of the starting point
+	/**
+	 * Display the X and Y value of the starting point
+	 * 
+	 * @param x the x coordinate of starting point
+	 * @param y the y coordinate of starting point
+	 */
+	public void setSTxy( int x, int y ) 
 	{
 		startx = x;
 		starty = y;
@@ -165,7 +188,13 @@ public class LocationPanel extends JPanel
 		textStart.setText("X:" + String.valueOf(startx) + "," + "Y:" + String.valueOf(starty) + " Cell:" + cell);
 	}
 
-	public void setENDxy( int x, int y ) //Display the X and Y value of the starting point
+	/**
+	 * Display the X and Y value of the destination
+	 * 
+	 * @param x the x coordinate of destination
+	 * @param y the y coordinate of destination
+	 */
+	public void setENDxy( int x, int y ) 
 	{
 		endx = x;
 		endy = y;
@@ -176,15 +205,26 @@ public class LocationPanel extends JPanel
 		textEnd.setText("X:" + String.valueOf(endx) + "," + "Y:" + String.valueOf(endy) + " Cell:" + cell);
 	}
 	
-	public void cleanText() // Remove the displayed value of two textfield.
+	/**
+	 * Remove the displayed value of two text fields.
+	 */
+	public void cleanText()
 	{
 		textStart.setText("");
 		textEnd.setText("");
 	}	
 
-	class LabelPanel extends JPanel //Panel including the start, end and go button
+	/**
+	 * The Class Label Panel including the start, end and go button
+	 */
+	class LabelPanel extends JPanel
 	{
-		private int PointSize;
+
+		private int PointSize; //the size of the colour dot displayed
+		
+		/**
+		 * Instantiates a new label panel.
+		 */
 		LabelPanel()
 		{
 			PointSize = 15;
@@ -198,6 +238,10 @@ public class LocationPanel extends JPanel
 			add(new JLabel("        : Possible Blockage"));
 			add(new JLabel("        : Traveling Path"));
 		}
+		
+		/**
+		 * Paints the colored dot
+		 */
 		public void paintComponent( Graphics g )
 		{
 			super.paintComponent(g);

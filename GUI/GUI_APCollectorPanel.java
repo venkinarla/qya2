@@ -16,36 +16,36 @@ import javax.swing.*;
 import Data.*;
 import Robot.Tribot;
 
+/**
+ * The Class GUI_APCollectorPanel.
+ */
 public class GUI_APCollectorPanel extends JPanel {
-	// ************* data member ***************
 	// functional units
 	// DataCollector collector;
 	// DataReceiver receiver;
-
-	// add the collected data to database
 	// SignalDatabase database;
+	int num_sample = 25;					// The number of time we collect the signals
+	//int meta_grid;
+	
+	JTextArea text_window;					// The text field displaying the message
+	JButton scan_button;					// The button for scanning
+	JTextField meta_grid_field;				// The cell number
+	//private BufferedWriter out = null;
+	//private FileWriter fstream = null;
+	private int counter = 1;				// The counter for file saving
 
-	// parameters
-	int num_sample = 5;
-	int meta_grid;
-
-	// GUI
-	JTextArea text_window;
-	JButton scan_button;
-	// JTextField num_sample_field;
-	JTextField meta_grid_field;
-	private BufferedWriter out = null;
-	private FileWriter fstream = null;
-	private int counter = 1;
-
-	// ************* class method **************
-	// initialization
+	/**
+	 * Instantiates a new AP collector GUI.
+	 */
 	public GUI_APCollectorPanel() {
 		// database = new SignalDatabase();
 		// database.loadDataSet();
 		initGUI();
 	}
 
+	/**
+	 * Inits the gui.
+	 */
 	public void initGUI() {
 		setLayout(new BorderLayout(5, 5));
 		
@@ -74,28 +74,34 @@ public class GUI_APCollectorPanel extends JPanel {
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		add(text_scroll, BorderLayout.CENTER);
 		
-		scan_button.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+		scan_button.addActionListener(new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent e) 
+			{
 				int grid = Integer.parseInt(meta_grid_field.getText());
 				PrintWriter fout = null;
 				try {
 					fout = new PrintWriter(grid+"[" + counter + "].txt");
-				} catch (IOException e3) {
-					// TODO Auto-generated catch block
+				} 
+				catch (IOException e3) 
+				{
 					e3.printStackTrace();
 				}
-				for (int j = 0; j < 25; j++) {
-					Vector<SignalVector> sv = DataCollector.Scan(1, 1000);
-					for (int i = 0; i < sv.size(); i++) {
+				for (int j = 0; j < num_sample; j++) 							// Repeat the process 25 times
+				{
+					Vector<SignalVector> sv = DataCollector.Scan(1, 1000);		// Use DataCollector to scan the signals 
+					for (int i = 0; i < sv.size(); i++) 
+					{
 						fout.println(sv.elementAt(i).dim + " " + grid);
 						//text_window.append("Number of APs =  " + sv.elementAt(i).dim + "\n");
-						for (String mac : sv.elementAt(i).getMacAddr()) {
+						for (String mac : sv.elementAt(i).getMacAddr()) 
+						{
 							fout.println(mac + " " + sv.elementAt(i).getRSSI(mac));
 						}
 					}
 					fout.println("");
 				}
-				text_window.append("25 sets of data for cell [" + grid + "] are collected" + "\n");
+				text_window.append("25 sets of data for cell [" + grid + "] are collected" + "\n");		// Output a successfully message
 				counter++;
 				fout.close();
 			}
@@ -104,13 +110,18 @@ public class GUI_APCollectorPanel extends JPanel {
 		add(param_panel, BorderLayout.NORTH);
 	}
 
+	/**
+	 * The main method.
+	 * 
+	 * @param args the arguments
+	 */
 	public static void main(String[] args) {
 		JFrame myUI = new JFrame();
 		myUI.setTitle("AP Collector");
 		myUI.setSize(400, 520);
 		myUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		myUI.add(new GUI_APCollectorPanel());
-		myUI.show();
+		myUI.setVisible(true);
 	}
 
 }

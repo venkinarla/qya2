@@ -10,6 +10,9 @@ import javax.swing.JPanel;
 
 import State.*;
 
+/**
+ * The Class MapPanel which display the map on the server UI.
+ */
 public class MapPanel extends JPanel
 {
 	private static final long serialVersionUID = 1671130736951078438L;
@@ -25,10 +28,16 @@ public class MapPanel extends JPanel
 	 	PointSize 		: the size of the colour dot display on the map
 	 	ZoomFactor		: the width/heigth of a grid
 	 */
-	private Integer[] ShortestPath = null;				//shortest path for the robot
-	private Vector<Integer> PossibleBlock = new Vector<Integer>();				//the cells that might have a blockage
+	private Integer[] ShortestPath = null;								//shortest path for the robot
+	private Vector<Integer> PossibleBlock = new Vector<Integer>();		//the cells that might have a blockage
 	private byte[][] map;
 
+	/**
+	 * Instantiates a new map panel.
+	 * 
+	 * @param inputMap the map image
+	 * @param inputZoom the zoom factor
+	 */
 	public MapPanel(Image inputMap, double inputZoom)
 	{
 		image = inputMap;
@@ -46,44 +55,88 @@ public class MapPanel extends JPanel
 		ZoomFactor = (int) inputZoom;
 	}
 
+	/**
+	 * Sets the map image.
+	 * 
+	 * @param inputMap the map image
+	 */
 	public void setImage( Image inputMap )
 	{
 		image = inputMap;
 	}
 
+	/**
+	 * Gets the map image.
+	 * 
+	 * @return the map image
+	 */
 	public Image getImage()
 	{
 		return image;
 	}
 
+	/**
+	 * Sets the point size.
+	 * 
+	 * @param size the new point size
+	 */
 	public void setPointSize( int size )
 	{
 		PointSize = size;
 	}
 
+	/**
+	 * Gets the point size.
+	 * 
+	 * @return the point size
+	 */
 	public int getPointSize()
 	{
 		return PointSize;
 	}
 
+	/**
+	 * Sets the starting position.
+	 * 
+	 * @param x the x coordinate of starting position
+	 * @param y the y coordinate of starting position
+	 */
 	public void setSTxy( int x, int y )
 	{
 		startx = x;
 		starty = y;
 	}
 
+	/**
+	 * Sets the destination.
+	 * 
+	 * @param x the x coordinate of destination
+	 * @param y the y coordinate of destination
+	 */
 	public void setENDxy( int x, int y )
 	{
 		endx = x;
 		endy = y;
 	}
 
+	/**
+	 * Sets the expected location of the robot
+	 * 
+	 * @param x the x coordinate of expected location
+	 * @param y the y coordinate of expected location
+	 */
 	public void setRobxy( int x, int y )
 	{
 		Robx = x;
 		Roby = y;
 	}
 	
+	/**
+	 * Sets the estimated location of the robot
+	 * 
+	 * @param x the x coordinate of estimated location
+	 * @param y the y coordinate of estimated location
+	 */
 	public void setESTxy( int x, int y )
 	{
 		estx = x;
@@ -91,25 +144,39 @@ public class MapPanel extends JPanel
 	}
 	
 
+	/**
+	 * Sets the grid map.
+	 * 
+	 * @param InMap the new map
+	 */
 	public void setMap( byte[][] InMap )
 	{
 		map = InMap;
 	}
 	
+	/**
+	 * Sets the shortest path
+	 * 
+	 * @param path the shortest path
+	 */
 	public void setPath( Integer[] path)
 	{
 		ShortestPath = path;
 	}
 
-	// paint the panel
+	/**
+	 * Paints the panel
+	 * 
+	 * @param path the shortest path
+	 */
 	public void paintComponent( Graphics g )
 	{
-		PossibleBlock.add(3);
+		//PossibleBlock.add(3);
 		super.paintComponent(g);
 		if (image != null)
 		{
-			g.drawImage(image, 0, 0, this);
-			int correctStartx = startx / 4 + 5;
+			g.drawImage(image, 0, 0, this);				// Paint the map image
+			int correctStartx = startx / 4 + 5;			// The offset of each displayed dot. P
 			int correctStarty = starty / 4 + 5;
 			int correctEndx = endx / 4 + 5;
 			int correctEndy = endy / 4 + 5;
@@ -117,8 +184,8 @@ public class MapPanel extends JPanel
 			int correctRoby = Roby / 4 + 3;
 			int correctESTx = estx / 4 + 10;
 			int correctESTy = esty / 4 + 10;
-			// display the shortest path on the map
-			if ( ShortestPath != null )
+			
+			if ( ShortestPath != null )					// display the shortest path on the map
 			{
 				g.setColor(Color.orange);
 				for ( int i=0; i<ShortestPath.length; ++i )
@@ -126,10 +193,10 @@ public class MapPanel extends JPanel
 					g.fillOval(Coordinate.getCoord(ShortestPath[i]).x * ZoomFactor + Coordinate.getCoord(ShortestPath[i]).x / 4, 
 							Coordinate.getCoord(ShortestPath[i]).y * ZoomFactor + Coordinate.getCoord(ShortestPath[i]).y / 4, 
 							PointSize - 5 , PointSize - 5);
-					//System.out.println("HERE = " + ShortestPath[i] + " ^^^ " + Coordinate.getCoord(ShortestPath[i]).x +" &&& "+Coordinate.getCoord(ShortestPath[i]).y);
+					
 				}
 			}
-			if ( !PossibleBlock.isEmpty() )
+			if ( !PossibleBlock.isEmpty() )				// display the possible blockage on the map
 			{
 				g.setColor(Color.RED);
 				for ( int i=0; i<PossibleBlock.size(); ++i )
@@ -145,7 +212,6 @@ public class MapPanel extends JPanel
 					g.drawOval(blockx * ZoomFactor + blockx / 4 + 7, 
 							blocky * ZoomFactor + blocky / 4 + 7, 
 							PointSize-8, PointSize-8);					
-					//System.out.println("HERE = " + ShortestPath[i] + " ^^^ " + Coordinate.getCoord(ShortestPath[i]).x +" &&& "+Coordinate.getCoord(ShortestPath[i]).y);
 				}
 			}			
 			if (startx != -1 && starty != -1)
@@ -158,7 +224,7 @@ public class MapPanel extends JPanel
 
 			if (endx != -1 && endy != -1)
 			{
-				// Draw the Ending location
+				// Draw the destination
 				g.setColor(Color.blue);
 				g.fillOval(endx * ZoomFactor + correctEndx, endy * ZoomFactor + correctEndy, PointSize,
 						PointSize);
@@ -166,7 +232,7 @@ public class MapPanel extends JPanel
 
 			if (Robx != -1 && Roby != -1)
 			{
-				// Draw the Robot
+				// Draw the expected location of robot
 				g.setColor(Color.red);
 				g.fillOval(Robx * ZoomFactor + correctRobx, Roby * ZoomFactor + correctRoby, PointSize,
 						PointSize);
@@ -174,7 +240,7 @@ public class MapPanel extends JPanel
 			
 			if (estx != -1 && esty != -1)
 			{
-				// Draw the Robot
+				// Draw the estimated location of robot
 				g.setColor(Color.MAGENTA);
 				g.fillOval(estx * ZoomFactor + correctESTx, esty * ZoomFactor + correctESTy, PointSize,
 						PointSize);

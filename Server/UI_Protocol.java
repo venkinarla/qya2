@@ -2,8 +2,14 @@ package Server;
 
 import Data.*;
 
+/**
+ * The Class of Server Protocol.
+ * Designed by previous FYP group. 
+ * Most of the things in here is useless after we change the structure.
+ * Only processInput and some commands are still in use.
+ */
+
 public class UI_Protocol {
-	//action
 	private static final int STOP = 0;
 	private static final int MOVE = 1;
 	private static final int TURN = 2;
@@ -12,7 +18,6 @@ public class UI_Protocol {
 	private static final int OBJ = 5;
 	private static final int HELP = 6;
 	
-	//Status
 	private static final int WAITING = 0;
 	private static final int MOVING = 1;
 	private static final int DISCONNECTED = 2;
@@ -34,31 +39,26 @@ public class UI_Protocol {
 	private static final int DUMMY9 = 0;
 	private static final int DUMMY10 = 0;
 	private static final int DUMMY11 = 0;
-	
 	private int RobotStatus;
 	private int commandAction=-1,
 		commandValue=-1,
 		commandDuration=-1;	
 	
-	// stores the current ap data
 	private SignalStrength CurrentAP;
-	
-	public static final String[] action = { 	"STOP",				// STOP "DURATION"
-												"MOVE",				// MOVE "SPEED"	"DURATION"  (only move forward and backward)
-												"TURN",				// TURN "LEFTSPEED" "RIGHTDPEED" "DURATION"
-												"TURNANGLE",		// TURNANGLE "ANGLE"		(ROBOT will stop and turn at defined angle)
+	public static final String[] action = { 	"STOP",				
+												"MOVE",				
+												"TURN",				
+												"TURNANGLE",		
 												"AP:",
 												"OBJ:",
 												"HELP"
 												};
-	
 	public static final String[] status = { 	"WAITING",
 												"MOVING",
 												"DISCONNECTED",
 												"DUMMY3",
 												"FINISHED",
 												};
-	
 	public static final String[] respon = { 	"OK",
 					                            "DONE",
 					                            "WARNING",
@@ -66,7 +66,6 @@ public class UI_Protocol {
 												"FINISHED",
 												"DUMMY6"
 											};
-	
 	public static final String[] errorMess = { 	"INVALID_INPUT",
 											        "STILL_MOVING",
 											        "DUMMY8",
@@ -76,12 +75,21 @@ public class UI_Protocol {
 												};
 	
 	
+	/**
+	 * Instantiates a new protocol UI.
+	 */
 	UI_Protocol()
 	{
 		RobotStatus=WAITING;
 		CurrentAP = new SignalStrength(null,null,0,0,0);
 	}
 		
+	/**
+	 * Sets the status.
+	 * 
+	 * @param Instatus the instatus
+	 * @return the int
+	 */
 	public int setStatus(int Instatus)
 	{		
 		if (Instatus > 0 && Instatus<status.length)
@@ -90,6 +98,16 @@ public class UI_Protocol {
 		return 0;
 	}
 	
+	/**
+	 * Reply.
+	 * 
+	 * @param OutStatus the out status
+	 * @param Outrespon the outrespon
+	 * @param Outvalue the outvalue
+	 * @param Outduration the outduration
+	 * @param OutError the out error
+	 * @return the string
+	 */
 	public String reply(int OutStatus, int Outrespon, int Outvalue, int Outduration, int OutError)
 	{
 		String output=null;
@@ -118,6 +136,12 @@ public class UI_Protocol {
 		return output;		
 	}
 	
+	/**
+	 * Process command.
+	 * 
+	 * @param command the command
+	 * @return true, if successful
+	 */
 	public boolean processCommand(String [] command)
 	{
 		boolean validCommand = true;
@@ -151,44 +175,41 @@ public class UI_Protocol {
 		return validCommand;
 	}
 	
+	/**
+	 * Process input message, display a meaningful message in the console
+	 * 
+	 * @param InMessage the incoming message
+	 * @return the string of meaningful message
+	 */
 	public String processInput(String InMessage) 
 	{
 		if (InMessage == null) return "Unknown Command";
 		
 		String [] command = InMessage.split(" ");	
-		//boolean validCommand = true;
-		//validCommand = processCommand(command); 		
-		//if (!validCommand) return "NA"; 
-		
-		/*if (command[0].equalsIgnoreCase("AP:"))
-		{
-			if (command[1].equalsIgnoreCase("END"))
-				return "END";
-			else
-				return "AP";
-		}*/
-		
-		// when a sequence of commands is finished
-		// upon hearing this, we give the moving approval
-		if ( command[0].equalsIgnoreCase("ERROR") )
+		if ( command[0].equalsIgnoreCase("ERROR") )			// "ERROR ..."
 		{
 			return "ERROR";
 		}
-		else if ( command[0].equalsIgnoreCase("Front") )
+		else if ( command[0].equalsIgnoreCase("Front") )	// "Front ..." Response of "GETDATA"
 		{
 			return "Front";
 		}
-		else if (command[0].equalsIgnoreCase("FINISHED"))
+		else if (command[0].equalsIgnoreCase("FINISHED"))	// "FINISHED" Response after robot finish movement
 		{
 			return "Robot Movement Finished";
 		}
-		else if (command[0].equalsIgnoreCase("OK"))
+		else if (command[0].equalsIgnoreCase("OK"))			// "OK" Response after robot turn an angle
 		{
 			return "Robot Orientation Changed";
 		}
 		else return "Invalid Command";
 	}
 	
+	/**
+	 * Gets the signal.
+	 * 
+	 * @return the signal strength
+	 */
 	public SignalStrength GetSignal()
 	{
 		return CurrentAP;

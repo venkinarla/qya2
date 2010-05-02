@@ -19,34 +19,29 @@ import Robot.*;
 import Data.*;
 import GUI.UI_PDA;
 
+/**
+ * The Class PDA.
+ */
 public class PDA extends Thread
 {
-	//********** data member ************
+	public Tribot lego;						// The lego robot
+	private BufferedReader rin;				// The Input stream of the robot
+	private PrintWriter rout;				// The Output stream of the robot
+	private Protocol comm_protocol;			// The communication protocol
 	
-	// device side communication
-	/*private boolean dev_connected = false;
-	private ServerSocket dev_server_socket;
-	private Socket dev_client_socket;
-	private BufferedReader din;
-	private PrintWriter dout;*/
+
+	public String IP = null;					// The IP address
+	public Integer port = null;					// The Port number
+	private boolean server_connected = false;	// The boolean value to tell if the server is connected
+	private Socket server_socket;				// The server side socket
+	private BufferedReader sin;					// The Input stream of the server
+	private PrintWriter sout;					// The Output stream of the server
 	
-	
-	// robot connection
-	public Tribot lego;
-	private BufferedReader rin;
-	private PrintWriter rout;
-	private Protocol comm_protocol;
-	
-	// server side communication
-	public String IP = null;
-	public Integer port = null;
-	private boolean server_connected = false;
-	private Socket server_socket;
-	private BufferedReader sin;
-	private PrintWriter sout;
-	
-	//********** class method ***********
-	// initialize
+	/**
+	 * Instantiates a PDA object.
+	 * 
+	 * @param robot the robot
+	 */
 	public PDA(Tribot robot)
 	{
 		lego = robot;
@@ -54,6 +49,13 @@ public class PDA extends Thread
 		// Coordinate.initMetaGrid();
 	}
 	
+	/**
+	 * Instantiates a PDA object.
+	 * 
+	 * @param robot the robot
+	 * @param IP the IP
+	 * @param port the port
+	 */
 	public PDA(Tribot robot, String IP, int port )
 	{
 		lego = robot;
@@ -63,12 +65,17 @@ public class PDA extends Thread
 		this.port = port;
 	}
 	
-	public void setAlternative(BufferedReader in, PrintWriter out)
-	{
-		sin = in;
-		sout = out;
-	}
+	/**
+	 * Sets the alternative.
+	 * 
+	 * @param in the in
+	 * @param out the out
+	 */
 	
+	/**
+	 * This is run by creating a new thread
+	 * 
+	 */
 	public void run()
 	{
 		while (true)
@@ -79,14 +86,15 @@ public class PDA extends Thread
 				{
 					connectRobot();
 				}
-				//if ( !dev_connected )
-				//	connectDevice();
 			}
 			runServer();
 		}
 	}
 	
-	// create the legacy PDA-side server
+
+	/**
+	 * Start the PDA client and connect to the server
+	 */
 	public void runServer()
 	{
 		// initialization
@@ -95,60 +103,36 @@ public class PDA extends Thread
 		connectServer();
 		if (server_connected)
 			System.out.println("Server Connected!");
-		while ( server_connected )
+		
+		while ( server_connected )										// After connected, wait for input command
 		{			
 			try
 			{	
-				// receive pc server command
 				String in_msg = sin.readLine();
 				String [] input = in_msg.split(" ");
 					System.out.println("From PC Server: " + in_msg);
-				if ( in_msg == null || in_msg.equalsIgnoreCase("Bye") )
+				if ( in_msg == null || in_msg.equalsIgnoreCase("Bye") )			// "BYE" or null
 				{
 					System.out.println("Closing connection...");
 					break;
 				}
-				else if (in_msg.equalsIgnoreCase("EST"))
+				else if (in_msg.equalsIgnoreCase("EST"))						// "EST"
 				{
 					//sout.println("Estimating robot location, Please Wait...");
-					//DataCollector.estimate(10, 1000, sout);
-					DataCollector.ScanVirtual2(10, 1000, sout);
+					DataCollector.estimate(10, 1000, sout);
 				}
 				// collect ap data and send back to server
-				else if (input[0].equalsIgnoreCase("getap"))
+				else if (input[0].equalsIgnoreCase("getap"))					
 				{
-					// e.g. getap num_sample scan_interval
+					// e.g. getap num_sample scan_interval						// "GETAP"
 					//System.out.println("==============================");
 					//System.out.println("Start getting signal data!");
 					//sout.println("Collecting APs signal, Please Wait...");
-					DataCollector.ScanVirtual(1, 1000, sout);
+					DataCollector.Scan(1, 1000, sout);
 					//System.out.println("Signal data collected successfully!");
 					//System.out.println("==============================");
-					
-					// use the remote device as a spotter
-					/*if ( !dev_connected )
-					{
-						connectDevice();
-					}
-					dout.println(in_msg);
-					System.out.println("start getting ap data");
-					String dev_in_msg = din.readLine();
-					while ( !dev_in_msg.equalsIgnoreCase("AP: END") )
-					{
-						System.out.println(dev_in_msg);
-						sout.println(dev_in_msg);
-						dev_in_msg = din.readLine();
-					}
-					System.out.println("ap data collected from spotter");*/
 				}
-				
-				/*else if ( in_msg.length() > 3 &&
-						in_msg.substring(0, 3).equalsIgnoreCase("run"))
-				{
-					lego.runProgram("GrabBall.nxj");
-				}*/
-
-				else if (in_msg.equalsIgnoreCase("getdata"))
+				else if (in_msg.equalsIgnoreCase("getdata"))					// "GETDATA"
 				{
 					if ( lego.isConnected() )
 					{
@@ -168,7 +152,7 @@ public class PDA extends Thread
 					}
 					continue;
 				}
-				else if ( in_msg.equalsIgnoreCase("isobstacle"))
+				else if ( in_msg.equalsIgnoreCase("isobstacle"))				// "ISOBSTACLE"
 				{
 					if ( lego.isConnected() )
 					{
@@ -194,24 +178,17 @@ public class PDA extends Thread
 					}
 					continue;					
 				}
-				else if ( in_msg.equalsIgnoreCase("temp"))
+				else if ( in_msg.equalsIgnoreCase("temp"))						// "TEMP"
 				{
 					sout.println("Robot travelling...");
 					continue;
 				}
 				else
 				{
-					// running the moving commands
- 
 					// process the command just received
 					String out_msg = comm_protocol.processInput(in_msg);
-					//TODO
-					// execute the command
 					runCommand();
-
-					// give feedback to the server
-					//System.out.println("To PC Server: " + out_msg);
-					sout.println(out_msg);
+					sout.println(out_msg);										// Send response to the server
 				}
 
 				Thread.sleep(1000);
@@ -222,20 +199,20 @@ public class PDA extends Thread
 				break;
 			}
 		}
-
-		// close the connection of both the robot and the PC server
 		disconnectServer();
 		System.out.println("Connection to the server has been closed!");
 	}
 
-	// execute the command in automated mode
-	// the legacy communication interface
+	/**
+	 * Run command.
+	 * 
+	 * @return true, if successful
+	 */
 	public boolean runCommand()
 	{
 		if (comm_protocol.GetCommandListSize() > 0)
 		{
-			// get current command
-			comm_protocol.NextCommand();
+			comm_protocol.NextCommand();										// Get the next command
 			/*System.out.println("Command:" + comm_protocol.GetAction());
 			System.out.println("Value1:" + comm_protocol.GetValue1());
 			System.out.println("Value2:" + comm_protocol.GetValue2());
@@ -246,8 +223,6 @@ public class PDA extends Thread
 				//System.err.println("ERROR : Robot is not connected!");
 				return false;
 			}
-
-			// we could change all these to NXT side program
 			switch (comm_protocol.GetAction())
 				{
 				case Protocol.MOVE:
@@ -258,10 +233,10 @@ public class PDA extends Thread
 					lego.stop();
 					break;
 				case Protocol.TURN:
-					lego.turn(
+					/*lego.turn(
 							comm_protocol.GetValue1(), 
 							comm_protocol.GetValue2(), 
-							comm_protocol.GetDuration());
+							comm_protocol.GetDuration());*/
 				case Protocol.MOVEDIST:
 					/*lego.moveDistance(
 							comm_protocol.GetValue1(), 
@@ -277,9 +252,8 @@ public class PDA extends Thread
 				case Protocol.TURNANGLE:
 					// change the orientation of the robot as well
 					//lego.setOrientation(lego.getOrientation() + comm_protocol.GetValue1());
-					lego.setGuidingAngle(comm_protocol.GetValue1());
 					//lego.turnangle(comm_protocol.GetValue1());
-					lego.loggedTurnangle(comm_protocol.GetValue1());
+					//lego.loggedTurnangle(comm_protocol.GetValue1());
 					break;
 				case Protocol.ISOBSTACLE:
 					//lego.runProgram("GrabBall.nxj");
@@ -293,7 +267,11 @@ public class PDA extends Thread
 		return true;
 	}
 	
-	// connect to the robot
+	/**
+	 * Connect to the server.
+	 * 
+	 * @return true, if successful
+	 */
 	public boolean connectServer()
 	{	
 		// close the previous PC server connection
@@ -350,21 +328,15 @@ public class PDA extends Thread
 			}
 			catch (Exception e)
 			{
-				// do nothing
 			}
 		}
 		
 		return server_connected;
 	}
 	
-	
-	protected void finalize()
-	{
-		//disconnectDevice();
-		disconnectRobot();
-		disconnectServer();
-	}
-	
+	/**
+	 * Connect to the robot.
+	 */
 	public void connectRobot()
 	{
 		boolean connected = false;
@@ -385,6 +357,11 @@ public class PDA extends Thread
 	}
 	
 	
+	/**
+	 * Disconnect from the robot.
+	 * 
+	 * @return true, if successful
+	 */
 	public boolean disconnectRobot()
 	{
 		try
@@ -400,7 +377,11 @@ public class PDA extends Thread
 		return lego.isConnected();
 	}
 	
-	// close the connection
+	/**
+	 * Disconnect from the server.
+	 * 
+	 * @return true, if successful
+	 */
 	public boolean disconnectServer()
 	{
 		while (server_connected)
@@ -421,78 +402,29 @@ public class PDA extends Thread
 		return server_connected;
 	}
 	
-	// connect to a remote wifi spotter 
-	// listen to port 520
-	/*public void connectDevice()
-	{
-		while ( dev_connected )
-		{
-			disconnectDevice();
-		}
-		
-		System.out.println("Waiting for Spotter Device connection...");
-		while ( !dev_connected )
-		{
-			try
-			{
-				dev_server_socket = new ServerSocket(520);
-				dev_client_socket = dev_server_socket.accept();
-				din = new BufferedReader(new InputStreamReader(
-						dev_client_socket.getInputStream()));
-				dout = new PrintWriter(dev_client_socket.getOutputStream(),true);
-				System.out.println("Spotter Device connection established");
-				dev_connected = true;
-			}
-			catch (IOException e)
-			{
-				System.err.println("error: cannot bind a client socket\n"+ e.toString());
-			}
-			
-			try
-			{
-				Thread.sleep(3000);
-			}
-			catch (InterruptedException e)
-			{
-				//
-			}
-		}
-	}
-	
-	public void disconnectDevice()
-	{
-		while ( dev_connected )
-		{
-			try
-			{
-				din.close();
-				dout.close();
-				dev_client_socket.close();
-				dev_server_socket.close();
-				dev_connected = false;
-				System.out.println("Spotter Device connection established");
-			}
-			catch (IOException e)
-			{
-				System.err.println("error: cannot close spotter connection\n" + e.toString());
-			}
-		}
-	}*/
-	
-	/*
-	 * Set the IP retrieved from the UI pannel to the PDA
+	/**
+	 * Sets the IP.
+	 * 
+	 * @param IP the new IP
 	 */
 	public void setIP(String IP){
 		this.IP = IP;
 	}
 	
-	/*
-	 * Set the Port retrieved from the UI pannel to the PDA
+	/**
+	 * Sets the port.
+	 * 
+	 * @param port the new port
 	 */
 	public void setPort(int port){
 		this.port = port;
 	}
 	
+	/**
+	 * The main method.
+	 * 
+	 * @param args the arguments
+	 */
 	public static void main(String[] args)
 	{
 		PDA pda = new PDA(new Tribot());

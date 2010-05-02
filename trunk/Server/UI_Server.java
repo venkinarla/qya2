@@ -1,6 +1,5 @@
 package Server;
 
-// import everything from basic library
 import Data.*;
 import LocationEstimation.*;
 import State.*; //import Server.*;
@@ -34,139 +33,148 @@ import javax.swing.*;
 public class UI_Server extends JPanel implements MapControl {
 
 	private static final long serialVersionUID = 3177827846580167915L;
-	// ********************** data members ***************************
-	// main layout
-	private static final double ZoomFactor = 23.3;
-	private JTextArea TextDisplayField;
-	private JTextField TextInputField;
-	private JButton sendButton;
-	private JButton findButton;
-	private MapPanel PathMap;
-	private LocationPanel LapLocPanel;
-	private JPanel Server_CtrPanel;
-	private JButton mode_button;
-
-	// private Laptop_CtrPanel LapCtrPanel;
-	private JScrollPane Mapscroll, Textscroll;
-	private boolean StartMon, EndMon;
-
-	// server-client connection
-	private int port;
-	private ServerSocket serverSock;
-	private Socket clientSock;
-	private PrintWriter out;
-	private BufferedReader in;
-
-	private JButton createServer;
-	private JTextField clientList;
-	private JTextField Inputport;
-
-	private boolean connected;
+	private static final double ZoomFactor = 23.3;		// Basically means the width of each cell
+	private JTextArea TextDisplayField;					// Console at the bottom
+	private JTextField TextInputField;					// Input field at the bottom
+	private JButton sendButton;							// The send button for command
+	private JButton findButton;							// The find NXT button
+	private MapPanel PathMap;							// The map
+	private LocationPanel LapLocPanel;					// The lower part of the control panel
+	private JPanel Server_CtrPanel;						// The upper part of the control panel
+	private JScrollPane Mapscroll, Textscroll;			// The scrolls that hold the map and the console
+	private boolean StartMon, EndMon;					// The boolean value that tell if the set start and destination button is selected
+	
+	private int port;									// The server side connection port value
+	private ServerSocket serverSock;					// The server side socket
+	private Socket clientSock;							// The client side socket
+	private PrintWriter out;							// The client side output stream
+	private BufferedReader in;							// The server side input stream
+	private JButton createServer;						// The start server button
+	private JButton mode_button;						// The mode selection button
+	private JTextField clientList;						// The text field that display the client information
+	private JTextField Inputport;						// The text field for connection port
+	private boolean connected;							// The boolean value that tell if a client is connected to the server
 
 	// location estimation
-	private LocEstim RobotLocCalculation;
-	private Vector<SignalStrength> ss = new Vector<SignalStrength>();
-	private SignalVector sv = new SignalVector();
-	private Vector<SignalVector> vsv = new Vector<SignalVector>();
-	private UI_Protocol comProtocol;
-	private Boolean[] blocked;
+	private LocEstim RobotLocCalculation;								// The object that used to call the localization function
+	private Vector<SignalStrength> ss = new Vector<SignalStrength>();	// A vector of signal strength data used to store the data temporary.
+	private SignalVector sv = new SignalVector();						// A signal vector used to count the unique access point received
+	private Vector<SignalVector> vsv = new Vector<SignalVector>();		// A vector of signal vector used to save the data
+	private UI_Protocol comProtocol;					// The protocol used process the input command
+	private Boolean[] blocked;							// A array of boolean value that tell if a cell is blocked
+	private int robot_mode = 2; 						// Mode of the robot. 1 for auto data collection, 2 for self-guiding.
+	Tribot lego;										// The object to control the robot
 
-	// *************** robot mode *******************
-	private int robot_mode = 2; // 1 for data collection, 2 for exploring
-	private boolean use_remote_device = true;
+	// training data
+	private SignalDatabase training_data;				// The database used for localization
+	private boolean can_move;							// The boolean value that tell if the robot can start self-guiding
+	private Coordinate start_state;						// The start location of the path
+	private Coordinate goal_state;						// The destination of the path
+	private Grid grid;									// The grid map loaded
 
-	// the robot, for controlling issue
-	Tribot lego;
-	// public static String log_file = "log.lgr";
-
-	// *************** training data ****************
-	private SignalDatabase training_data;
-
-	// *************** path planning stuffs *****************
-	private boolean can_move;
-	private Coordinate start_state;
-	private Coordinate goal_state;
-	private Grid grid;
-	private int gridnum = -1;
-	private int counter = 0;
-
-	public void setMove(boolean flag) {
+	/**
+	 * Tell the server to start self-guiding
+	 * 
+	 * @param flag the boolean value
+	 */
+	public void setMove(boolean flag) 
+	{
 		can_move = flag;
 	}
 
-	public void started() {
+	/**
+	 * Start self-guiding
+	 * 
+	 */
+	public void started() 
+	{
 		mode_button.setEnabled(false);
 		findButton.setEnabled(false);
 	}
 
-	public void setMovePath(Coordinate start, Coordinate end) {
+	/**
+	 * Setup the starting point and the destination for self-guiding
+	 * 
+	 * @param start the Coordinate of starting point
+	 * @param end the Coordinate of destination
+	 */
+	public void setMovePath(Coordinate start, Coordinate end) 
+	{
 		start_state = start;
 		goal_state = end;
-		printf("Starting point: " + Coordinate.getGridNum(start)
-				+ ", Destination : " + Coordinate.getGridNum(end));
+		printf("Starting point: " + Coordinate.getGridNum(start) + ", Destination : " + Coordinate.getGridNum(end));
 	}
 
-	public UI_Server(Tribot robot) {
-		// don't move
-		can_move = false;
+	/**
+	 * Instantiates a new Server UI.
+	 * 
+	 * @param robot the lego robot
+	 */
+	public UI_Server(Tribot robot) 
+	{
+		can_move = false;				
 		start_state = null;
 		goal_state = null;
-
-		// initialize training data
+		StartMon = false;
+		EndMon = false;
+		
+		// Initialize training data
 		training_data = new SignalDatabase();
 		training_data.loadDataSet();
 
-		// load the grid map
+		// Load the grid map
 		grid = new Grid();
 		grid.loadGrid();
 
-		// initialize the meta grid spec
+		// Initialize the meta grid spec
 		Coordinate.initMetaGrid();
-		// initialize the meta grid graph
+		// Initialize the meta grid graph
 		Coordinate.initMetaGridGraph();
 
-		// initialize the robot
+		// Initialize the robot
 		lego = robot;
 
+		// Initialize the localization function
 		RobotLocCalculation = new LocEstim();
-		StartMon = false;
-		EndMon = false;
 
-		// GUI stuffs
-		setLayout(new GridBagLayout());
+		// GUI
+		setLayout(new GridBagLayout());										
 		GridBagConstraints gc0 = new GridBagConstraints();
 		gc0.fill = GridBagConstraints.BOTH;
 		setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-		Image imgMap = new ImageIcon("src/dataset/Map.gif").getImage();
-		PathMap = new MapPanel(imgMap, ZoomFactor);
+		Image imgMap = new ImageIcon("src/dataset/Map.gif").getImage();			// Load the map file
+		PathMap = new MapPanel(imgMap, ZoomFactor);								// Create the MapPanel object
 
-		Mapscroll = new JScrollPane(PathMap,
+		Mapscroll = new JScrollPane(PathMap,									// Place the MapPanel object inside a scroll panel
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		Mapscroll.setBorder(BorderFactory.createTitledBorder(BorderFactory
+		Mapscroll.setBorder(BorderFactory.createTitledBorder(BorderFactory		// Setup the border and the name of the MapPanel
 				.createLoweredBevelBorder(), "Map: ( Draggable )"));
 
-		PathMap.addMouseListener(new MouseAdapter() {
-			int ox, oy;
+		PathMap.addMouseListener(new MouseAdapter() 
+		{
+			int ox, oy;									// The x,y position when the mouse is pressed
 
-			public void mousePressed(MouseEvent e) {
-				ox = (int) e.getX();
+			public void mousePressed(MouseEvent e) 
+			{
+				ox = (int) e.getX();					// Get the x,y position when the mouse is pressed
 				oy = (int) e.getY();
 			}
 
-			public void mouseReleased(MouseEvent e) {
-				int x = (int) e.getX();
+			public void mouseReleased(MouseEvent e) 	// Make the Map draggable
+			{
+				int x = (int) e.getX();					// Get the x,y position when the mouse is released
 				int y = (int) e.getY();
-				int diffx = ox - x;
+				int diffx = ox - x;						// Find the differences between two position
 				int diffy = oy - y;
-				int maxx = Mapscroll.getHorizontalScrollBar().getMaximum()
+				int maxx = Mapscroll.getHorizontalScrollBar().getMaximum()			// Find the maximum possible x,y value for the map
 						- Mapscroll.getViewport().getWidth();
 				int maxy = Mapscroll.getVerticalScrollBar().getMaximum()
 						- Mapscroll.getViewport().getHeight();
-				int newx = Mapscroll.getViewport().getViewPosition().x + diffx;
-				int newy = Mapscroll.getViewport().getViewPosition().y + diffy;
-				if (newx > maxx)
+				int newx = Mapscroll.getViewport().getViewPosition().x + diffx;		// Fine the new x,y value by adding the differences
+				int newy = Mapscroll.getViewport().getViewPosition().y + diffy;		
+				if (newx > maxx)													// Use the maximum or zero ifthe new value is larger than the limit
 					newx = maxx;
 				else if (newx < 0)
 					newx = 0;
@@ -174,101 +182,111 @@ public class UI_Server extends JPanel implements MapControl {
 					newy = maxy;
 				else if (newy < 0)
 					newy = 0;
-				// System.out.println(Mapscroll.getViewport().getHeight());
-				// System.out.println(Mapscroll.getVerticalScrollBar().getMaximum());
-				// System.out.println(Mapscroll.getViewport().getViewPosition());
-				// System.out.println(ox + " " + oy + " " + x + " " + y);
-				Mapscroll.getViewport().setViewPosition(new Point(newx, newy));
+				Mapscroll.getViewport().setViewPosition(new Point(newx, newy));		// Update the Map
 			}
 
-			public void mouseEntered(MouseEvent e) {
-				if ((StartMon != true) && (EndMon != true)) {
+			public void mouseEntered(MouseEvent e)	 // Change the mouse cursor to cross
+			{
+				if ((StartMon != true) && (EndMon != true)) 
+				{
 					Mapscroll.setCursor(new Cursor(13));
-				} else
+				} 
+				else
+				{
 					Mapscroll.setCursor(new Cursor(12));
+				}
 			}
 
-			public void mouseClicked(MouseEvent e) {
-				int x = (int) (e.getX() / ZoomFactor);
+			public void mouseClicked(MouseEvent e)	// Setup the starting location and destination
+			{
+				int x = (int) (e.getX() / ZoomFactor);					// The x,y coordinate when the mouse is clicked
 				int y = (int) (e.getY() / ZoomFactor);
 
-				if (x >= MapPanel.MapWidth || y >= MapPanel.MapHeight) {
-					return;
-				} else if (grid.getGridMap()[y][x] != 0) {
-					return;
-				} else if (StartMon == true) {
-					LapLocPanel.setSTxy(x, y);
+				if (x >= MapPanel.MapWidth || y >= MapPanel.MapHeight) 
+				{
+					return;												// Ignore if it is outside the limit
+				} 
+				else if (grid.getGridMap()[y][x] != 0) 
+				{
+					return;												// Ignore if it is a unmoveable place
+				} 
+				else if (StartMon == true) 								
+				{
+					LapLocPanel.setSTxy(x, y);							// Setup the starting location
 					StartMon = false;
 					// PathMap.clearPath();
-				} else if (EndMon == true) {
-					LapLocPanel.setENDxy(x, y);
+				} 
+				else if (EndMon == true) 
+				{
+					LapLocPanel.setENDxy(x, y);							// Setup the destination
 					EndMon = false;
 					// PathMap.clearPath();
 				}
 			}
 		});
 
-		PathMap.addMouseMotionListener(new MouseMotionListener() {
-			public void mouseMoved(MouseEvent e) {
-				int x = (int) (e.getX() / ZoomFactor);
+		PathMap.addMouseMotionListener(new MouseMotionListener() 
+		{
+			public void mouseMoved(MouseEvent e) 						// Update the position of the colored dot 
+			{
+				int x = (int) (e.getX() / ZoomFactor);					// The x,y coordinate when the mouse is pointed to
 				int y = (int) (e.getY() / ZoomFactor);
-				// System.out.println(e.getX() + " " + e.getY());
-				// System.out.println(x + " " + y);
-				if (x >= MapPanel.MapWidth || y >= MapPanel.MapHeight) {
-					// System.out.println(PathMap.GetMaxMapCoordx() + " OUT " +
-					// PathMap.GetMaxMapCoordy());
-					return;
-				} else if (grid.getGridMap()[y][x] != 0) {
-					return;
-				} else if (StartMon == true) {
-					PathMap.setSTxy(x, y);
+				if (x >= MapPanel.MapWidth || y >= MapPanel.MapHeight) 
+				{
+					return;												// Ignore if it is outside the limit
+				} 
+				else if (grid.getGridMap()[y][x] != 0) 
+				{
+					return;												// Ignore if it is a unmoveable place
+				} 
+				else if (StartMon == true) 
+				{
+					PathMap.setSTxy(x, y);								// Update the location of the starting location dot
 					PathMap.repaint();
-				} else if (EndMon == true) {
-					PathMap.setENDxy(x, y);
+				} 
+				else if (EndMon == true) 
+				{
+					PathMap.setENDxy(x, y);								// Update the location of the destination dot
 					PathMap.repaint();
 				}
 			}
-
-			public void mouseDragged(MouseEvent e) {
-
+			public void mouseDragged(MouseEvent e) 						// Useless currently
+			{
 			}
 		});
 
-		JPanel CtrDisplay = new JPanel();
-		TextDisplayField = new JTextArea(0, 0);
+		JPanel CtrDisplay = new JPanel();								// Create the console panel
+		TextDisplayField = new JTextArea(0, 0);							// Create the TextDisplayField object
 		TextDisplayField.setEditable(false);
 		TextDisplayField.setLineWrap(true);
 
-		Textscroll = new JScrollPane(TextDisplayField,
+		Textscroll = new JScrollPane(TextDisplayField,					// Place the TextDisplayField object inside a scroll panel
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		// Textscroll.setSize(800, 200);
 		Textscroll.setAutoscrolls(true);
 
-		/*
-		 * Textscroll.getVerticalScrollBar().addAdjustmentListener(new
-		 * AdjustmentListener() { public void adjustmentValueChanged(
-		 * AdjustmentEvent e ) { Textscroll.getViewport().setViewPosition(new
-		 * Point(0,Textscroll.getVerticalScrollBar().getMaximum())); } } );
-		 */
-
 		CtrDisplay.setLayout(new BorderLayout(10, 10));
-		CtrDisplay.add(Textscroll, BorderLayout.CENTER);
+		CtrDisplay.add(Textscroll, BorderLayout.CENTER);				// Add the TextDisplayField in the console panel
 		CtrDisplay.setBorder(BorderFactory.createTitledBorder(BorderFactory
 				.createLoweredBevelBorder(), "Console:"));
 
-		sendButton = new JButton("SEND");
-		sendButton.addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent e) {
+		sendButton = new JButton("SEND");								// Create the send button
+		sendButton.addMouseListener(new MouseAdapter() 
+		{
+			public void mouseClicked(MouseEvent e) 
+			{
 				sendMessage();
 			}
 		});
 
-		findButton = new JButton("Find NXT");
+		findButton = new JButton("Find NXT");							// Create the Find NX button
 		findButton.setEnabled(false);
-		findButton.addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent e) {
-				if (findButton.isEnabled()) {
+		findButton.addMouseListener(new MouseAdapter() 
+		{
+			public void mouseClicked(MouseEvent e) 						// Start the localization function
+			{
+				if (findButton.isEnabled()) 
+				{
 					printf("Estimating robot location, Please wait...");
 					TextInputField.setText("est");	
 					ss.clear();
@@ -278,27 +296,26 @@ public class UI_Server extends JPanel implements MapControl {
 			}
 		});
 
-		JPanel Messaging = new JPanel();
+		JPanel Messaging = new JPanel();								// Create a panel holding the TextInputField and sendButton
 		TextInputField = new JTextField();
 		Messaging.setLayout(new BorderLayout());
 		Messaging.add(TextInputField, BorderLayout.CENTER);
 		Messaging.add(sendButton, BorderLayout.EAST);
-		CtrDisplay.add(Messaging, BorderLayout.SOUTH);
+		CtrDisplay.add(Messaging, BorderLayout.SOUTH);					// Add every thing into the console panel
 
-		Server_CtrPanel = new JPanel();
-		LapLocPanel = new LocationPanel(this);
+		Server_CtrPanel = new JPanel();									// Create a control panel
+		LapLocPanel = new LocationPanel(this);							// Create a Location panel
 		clientList = new JTextField();
 		clientList.setEditable(false);
 		Inputport = new JTextField("560", 5);
 		createServer = new JButton("Start Server!");
-		Server_CtrPanel.setLayout(new GridBagLayout());
+		Server_CtrPanel.setLayout(new GridBagLayout());					
 		GridBagConstraints gc = new GridBagConstraints();
 		gc.fill = GridBagConstraints.BOTH;
 		gc.gridwidth = GridBagConstraints.REMAINDER;
-		Server_CtrPanel.add(createServer, gc);
-
-		// create the mode selection list
-		mode_button = new JButton();
+		Server_CtrPanel.add(createServer, gc);							
+		
+		mode_button = new JButton();									// Create the mode selection button
 		mode_button.setText("Guiding Mode");
 		robot_mode = 2;
 		mode_button.addActionListener(new ActionListener() {
@@ -327,6 +344,8 @@ public class UI_Server extends JPanel implements MapControl {
 
 		Server_CtrPanel.add(LapLocPanel, gc);
 		Server_CtrPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLoweredBevelBorder(), "Control Panel"));
+		
+		// Add everything to the server UI
 		gc0.gridwidth = GridBagConstraints.RELATIVE;
 		gc0.gridheight = 2;
 		gc0.weightx = 1;
@@ -347,55 +366,56 @@ public class UI_Server extends JPanel implements MapControl {
 
 		comProtocol = new UI_Protocol();
 
-		TextInputField.addKeyListener(new KeyAdapter() {
-			public void keyPressed(KeyEvent arg0) {
-				switch (arg0.getKeyCode()) {
-				case KeyEvent.VK_ENTER:
-					sendMessage();
-					TextInputField.setText("");
-					break;
-				default:
+		TextInputField.addKeyListener(new KeyAdapter() 
+		{
+			public void keyPressed(KeyEvent arg0) 		// Setup the enter key for sending command
+			{
+				switch (arg0.getKeyCode()) 
+				{
+					case KeyEvent.VK_ENTER:
+						sendMessage();
+						TextInputField.setText("");
+						break;
+					default:
 					;
 				}
 			}
-
-			public void keyReleased(KeyEvent arg0) {
+			public void keyReleased(KeyEvent arg0) 
+			{
 			}
-
-			public void keyTyped(KeyEvent arg0) {
+			public void keyTyped(KeyEvent arg0) 
+			{
 			}
 
 		});
 
-		createServer.addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent e) {
+		createServer.addMouseListener(new MouseAdapter() 
+		{
+			public void mouseClicked(MouseEvent e) 			// user click the start server button
+			{
 				if (!createServer.isEnabled())
 					return;
-				LapLocPanel.cleanText();
+				LapLocPanel.cleanText();					// Remove the value of the last time
 				TextDisplayField.setText(null);
 				TextInputField.setText(null);
 				PathMap.setSTxy(-1, -1);
 				PathMap.setENDxy(-1, -1);
-				// PathMap.setRobxy(-1, -1);
 				PathMap.setPath(null);
 				PathMap.repaint();
-				/*if (use_remote_device) {
-					printf("Using remote device to control the robot");
-				} else {
-					printf("Using local server to control the robot");
-					lego.configure();
-				}*/
 
 				String Message = Inputport.getText();
-				if (Message.length() > 0) {
+				if (Message.length() > 0) 
+				{
 					port = Integer.valueOf(Message).intValue();
 					createServer.setEnabled(false);
 					createServer.setText("Connecting...");
 					Inputport.setEditable(false);
 
-					Thread mythread = new Thread() {
-						public void run() {
-							CreateServer();
+					Thread mythread = new Thread() 
+					{
+						public void run() 
+						{
+							CreateServer();					// Create a thread for the server to run
 						}
 					};
 					mythread.start();
@@ -407,15 +427,18 @@ public class UI_Server extends JPanel implements MapControl {
 		});
 
 		PathMap.setMap(grid.getGridMap());
-		blocked = new Boolean[Coordinate.meta_grid.size()];
+		blocked = new Boolean[Coordinate.meta_grid.size()];		// Setup the boolean value of blockage 
 		for (int i = 0 ; i < Coordinate.meta_grid.size() ; i++)
 		{
 			blocked[i] = false;
 		}
 		//blocked[2] = true;
-		disableALL();
+		disableALL();											// disable all button before connection
 	}
 
+	/**
+	 * Disable all buttons
+	 */
 	public void disableALL() {
 		LapLocPanel.disableALL();
 		sendButton.setEnabled(false);
@@ -424,6 +447,9 @@ public class UI_Server extends JPanel implements MapControl {
 		findButton.setEnabled(false);
 	}
 
+	/**
+	 * Enable all buttons
+	 */
 	public void enableALL() {
 		LapLocPanel.enableALL();
 		sendButton.setEnabled(true);
@@ -432,11 +458,15 @@ public class UI_Server extends JPanel implements MapControl {
 		findButton.setEnabled(true);
 	}
 
+	/**
+	 * Handle the command from the user
+	 */
 	public void sendMessage() {
 		String Message = TextInputField.getText();
 		String[] input = Message.split(" ");
-		if ((Message.compareToIgnoreCase("HELP") == 0)
-				|| (Message.compareToIgnoreCase("help") == 0)) {
+		// "HELP"
+		if ((Message.compareToIgnoreCase("HELP") == 0) || (Message.compareToIgnoreCase("help") == 0)) 
+		{
 			printf("");
 			printf("Command List");
 			printf("1. HELP                                                ( Display this commnad list)" );
@@ -446,46 +476,61 @@ public class UI_Server extends JPanel implements MapControl {
 			printf("5. GETAP                                               ( Robot will scan and return a list of signal strength records )");
 			printf("6  SAVE [cell number]                  ( Save the scanned reading as dataset for the cell number provided )");
 			printf("7. ISOBSTACLE                               ( Detect if there is obstacles around the robot )");
-			// TODO
-		} else if ((input[0].compareToIgnoreCase("CLEAR") == 0)
-				|| (input[0].compareToIgnoreCase("clear") == 0)) {
+		} 
+		// "CLEAR"
+		else if ((input[0].compareToIgnoreCase("CLEAR") == 0) || (input[0].compareToIgnoreCase("clear") == 0)) 
+		{
 			printf("Command : " + Message);
 			ss.clear();
 			vsv.clear();
 			printf("Temporary signal records removed!");
-		} else if ((input[0].compareToIgnoreCase("SAVE") == 0)
-				|| (input[0].compareToIgnoreCase("save") == 0)) {
+		} 
+		// "SAVE [gridnum]"
+		else if ((input[0].compareToIgnoreCase("SAVE") == 0) || (input[0].compareToIgnoreCase("save") == 0)) 
+		{
 			printf("Command : " + Message);
 			int gridnum = -1;
 			try {
-				if (input.length == 2) {
+				if (input.length == 2) 
+				{
 					gridnum = Integer.parseInt(input[1]);
-					if (gridnum > 0) {
+					if (gridnum > 0) 
+					{
 						vsv.add(sv);
-						printf("Saving dataset for grid cell number [ "
-								+ input[1] + " ]!");
+						printf("Saving dataset for grid cell number [ " + input[1] + " ]!");
 						training_data.expand(vsv, gridnum);
 						training_data.saveDataSet();
 						ss.clear();
 						vsv.clear();
 						printf("Dataset successfully saved! Temporary stored signal records removed!");
-					} else
+					} 
+					else
 						printf("ERROR : Invalid grid cell number!");
-				} else
+				} 
+				else
 					printf("ERROR : Invalid Argument for save command!");
-			} catch (NumberFormatException e) {
+			} 
+			catch (NumberFormatException e) 
+			{
 				printf("ERROR : Invalid grid cell number!");
 			}
-		} else if (connected) {			
-			if (!Message.equalsIgnoreCase("getap")
-					&& !Message.equalsIgnoreCase("est"))
+		} 
+		// For other command, send to the client
+		else if (connected) 
+		{			
+			if (!Message.equalsIgnoreCase("getap") && !Message.equalsIgnoreCase("est"))
 				printf("To Client : " + Message);
 			out.println(Message);
 		}
 	}
 
-	// override the printing function
-	public void printf(String Message) {
+	/**
+	 * Override the printing function
+	 * 
+	 * @param Message the string displayed
+	 */
+	public void printf(String Message) 
+	{
 		Font font = new Font("Verdana", Font.BOLD, 12);
 		TextDisplayField.setFont(font);
 		TextDisplayField.setForeground(Color.BLACK);
@@ -494,24 +539,47 @@ public class UI_Server extends JPanel implements MapControl {
 				new Point(0, Textscroll.getVerticalScrollBar().getMaximum()));
 	}
 
-	public void OnStartMonitor() {
+	/**
+	 * Handle the starting location button clicked
+	 */
+	public void OnStartMonitor() 
+	{
 		StartMon = true;
 	}
 
-	public void OnEndMonitor() {
+	/**
+	 * Handle the destination button clicked
+	 */
+	public void OnEndMonitor() 
+	{
 		EndMon = true;
 	}
 
-	public void OffStartMonitor() {
+	/**
+	 * Handle the starting location button released
+	 */
+	public void OffStartMonitor() 
+	{
 		StartMon = false;
 	}
 
-	public void OffEndMonitor() {
+	/**
+	 * Handle the destination button released
+	 */
+	public void OffEndMonitor() 
+	{
 		EndMon = false;
 	}
 
-	public static void main(String[] args) throws IOException,
-			ClassNotFoundException {
+	/**
+	 * The main method.
+	 * 
+	 * @param args the arguments
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws ClassNotFoundException the class not found exception
+	 */
+	public static void main(String[] args) throws IOException, ClassNotFoundException 
+	{
 		JFrame myUI = new JFrame();
 		myUI.setTitle("Lego Robot PC Server Control Panel");
 		myUI.setSize(1024, 740);
@@ -520,7 +588,12 @@ public class UI_Server extends JPanel implements MapControl {
 		myUI.setVisible(true);
 	}
 
-	public void CreateServer() {
+	/**
+	 * The function called when user start the server.
+	 * Basically, the whole GUI start in here.
+	 */
+	public void CreateServer() 
+	{
 		printf("Waiting for Client!");
 
 		try {
@@ -528,7 +601,7 @@ public class UI_Server extends JPanel implements MapControl {
 			serverSock = new ServerSocket(port);
 			clientSock = serverSock.accept();
 			TextDisplayField.requestFocusInWindow();
-			printf("=======================");
+			printf("=======================");										// Display the client information
 			printf("A client has successfully connected!");
 			printf("Client Name: " + clientSock.getInetAddress().getHostName());
 			printf("Client IP: " + clientSock.getInetAddress().getHostAddress());
@@ -537,194 +610,108 @@ public class UI_Server extends JPanel implements MapControl {
 			TextDisplayField.requestFocusInWindow();
 			TextInputField.requestFocusInWindow();
 
-			clientList.setText(clientSock.getInetAddress().getHostName()
+			clientList.setText(clientSock.getInetAddress().getHostName()				// Update the text field
 					+ " : " + clientSock.getInetAddress().getHostAddress());
 
-			in = new BufferedReader(new InputStreamReader(clientSock
-					.getInputStream()));
+			in = new BufferedReader(new InputStreamReader(clientSock.getInputStream())); // Setup the input, output stream
 			out = new PrintWriter(clientSock.getOutputStream(), true);
 			LapLocPanel.out = out;
 			connected = true;
 			enableALL();
 
-			// deal with the incoming message
-			String InMessage, OutMessage;
+			String InMessage, OutMessage;						// The input and output message
 
-			// ap signal related parameters
-			// boolean GetAP = false;
-			// int num_sample = 1;
-			// int sample_size = 1;
-			// int scan_interval = 4000;
-			/*
-			 * if ( robot_mode == 2 ) { num_sample = 1; }
-			 */
-
-			// Vector<Vector<SignalStrength>> RobotAPSignal = new
-			// Vector<Vector<SignalStrength>>();
-			// RobotAPSignal.add(new Vector<SignalStrength>());
-			// SignalVector curr_sig_vec = new SignalVector();
-
-			// full path based on meta grid setting
 			Integer[] meta_path = null;
-			int meta_idx = 0; // current meta grid indicator
-			Integer curr_angle = 0; // start angle of the robot, -y by default
-			int iter = 0;
+			int meta_idx = 0; 									// current meta grid indicator
+			Integer curr_angle = 0; 							// start angle of the robot, 0 by default
+			int iter = 0;										// iterator for auto data collection
 			boolean collected = true;
-			// wait for the starting signal
+			
+			// The server response to input before self-guiding function start
 			while (!can_move) 
 			{
 				InMessage = in.readLine();
 				String[] input = InMessage.split(" ");
+				// "GETDATA"
 				if (input[0].compareToIgnoreCase("Front") == 0 || input[0].compareToIgnoreCase("ERROR") == 0 || input[0].compareToIgnoreCase("Warning") == 0) 
 				{
 					printf(InMessage);
 				} 
+				// "GETAP"
 				else if (input[0].compareToIgnoreCase("AP:") == 0) 
 				{
 					if (input[1].compareToIgnoreCase("END") != 0) 
 					{
 						printf(input[1] + " " + input[2]);
-						ss.add(new SignalStrength(input[1], "", Integer
-								.parseInt(input[2]), -1, -1));
+						ss.add(new SignalStrength(input[1], "", Integer.parseInt(input[2]), -1, -1)); // Store the signal strength in ss
 					} 
 					else 
 					{
 						sv = new SignalVector(ss);
 						vsv.add(sv);
-						/*printf("Knn :"
-								+ RobotLocCalculation.knn_estimate(sv,
-										training_data.sig_vec_base, 9));
-						printf("Knn2 :"
-								+ RobotLocCalculation.knn_estimate_dataset2(sv,
-										training_data.sig_vec_base_v, 9));
-						for (int i = 0; i < ss.size(); i++) {
-							ss.elementAt(i).Signal_Strength += 5;
-						}
-						sv = new SignalVector(ss);
-						printf("Knn +5:"
-								+ RobotLocCalculation.knn_estimate(sv,
-										training_data.sig_vec_base, 9));
-						printf("Knn2 +5:"
-								+ RobotLocCalculation.knn_estimate_dataset2(sv,
-										training_data.sig_vec_base_v, 9));
-						for (int i = 0; i < ss.size(); i++) {
-							ss.elementAt(i).Signal_Strength += 5;
-						}
-						sv = new SignalVector(ss);
-						printf("Knn +10:"
-								+ RobotLocCalculation.knn_estimate(sv,
-										training_data.sig_vec_base, 9));
-						printf("Knn2 +10:"
-								+ RobotLocCalculation.knn_estimate_dataset2(sv,
-										training_data.sig_vec_base_v, 9));
-						for (int i = 0; i < ss.size(); i++) {
-							ss.elementAt(i).Signal_Strength += 5;
-						}
-						sv = new SignalVector(ss);
-						printf("Knn +15:"
-								+ RobotLocCalculation.knn_estimate(sv,
-										training_data.sig_vec_base, 9));
-						printf("Knn2 +15:"
-								+ RobotLocCalculation.knn_estimate_dataset2(sv,
-										training_data.sig_vec_base_v, 9));
-						// printf("Average :"+
-						// RobotLocCalculation.avg_estimate(sv,
-						// training_data.sig_vec_base_avg));
-						printf(sv.dim
-								+ " unique AP(s) were seen! Signal records are stored TEMPORARY!");
-						printf("You can rescan for more signal records or use \"SAVE [Grid cell number]\" to save the data!");
-						ss.clear();
-					}	*/
 						printf(sv.dim + " unique AP(s) were seen! Signal records are stored TEMPORARY!");
 						printf("You can rescan for more signal records or use \"SAVE [Grid cell number]\" to save the data!");
 						printf("==============================================");
-						/*if (sv.dim > 15)
-						{
-							vsv.add(sv);
-							printf("Saving dataset for grid cell number [ " + gridnum +" ]!");
-							training_data.expand(vsv, gridnum);
-							//training_data.saveDataSet();
-							ss.clear();
-							vsv.clear();
-							printf("Dataset successfully saved! Temporary stored signal records removed!");
-							counter++;
-							// TODO
-						}
-						if (counter < 20)
-						{
-							TextInputField.setText("getap " + gridnum);
-							sendMessage();
-							TextInputField.setText("");
-						}
-						else
-						{
-							counter = 0;
-							printf("DONE!!");
-						}*/
 					}
 				}
+				// "EST" or Click "Find NXT"
 				else if (input[0].compareToIgnoreCase("EST:") == 0)
 				{
 					if (input[1].compareToIgnoreCase("END") != 0)
 					{
-						//printf(input[1] + " " + input[2]);
 						ss.add(new SignalStrength(input[1], "", Integer.parseInt(input[2]), -1, -1));
 					}
 					else
 					{
 						sv = new SignalVector(ss);
 						printf(sv.dim + " unique AP(s) were seen!");
-						int estlocation = RobotLocCalculation.bayesianEstimation(sv, training_data.sig_vec_base_v);
-						PathMap.setESTxy(Coordinate.getCoord(estlocation).x, Coordinate.getCoord(estlocation).y);
+						int estlocation = RobotLocCalculation.bayesianEstimation(sv, training_data.sig_vec_base_v);		// Use the bayesian estimation
+						PathMap.setESTxy(Coordinate.getCoord(estlocation).x, Coordinate.getCoord(estlocation).y);		// Display the estimated location
 						PathMap.repaint();
 						printf("Estimated robot location : " + estlocation);
 						printf("==============================================");
 						ss.clear();
 					}
 				}
-				Textscroll.getViewport().setViewPosition(
-						new Point(0, Textscroll.getVerticalScrollBar()
-								.getMaximum()));
+				Textscroll.getViewport().setViewPosition(new Point(0, Textscroll.getVerticalScrollBar().getMaximum()));
 			}
+			
 			ArrayList<Integer> collectpath = new ArrayList<Integer>();
-			while (true) {
-				// request a new path
-				if (meta_path == null) {
-					if (start_state != null && goal_state != null) {
-						if (robot_mode == 2)
+			while (true) 
+			{
+				if (meta_path == null) 								// Request a new guiding path
+				{
+					if (start_state != null && goal_state != null) 
+					{
+						if (robot_mode == 2)						// For self-guiding
 						{
 							meta_idx = 0;
 							int meta_start = Coordinate.getGridNum(start_state);
 							int meta_goal = Coordinate.getGridNum(goal_state);
-							// System.out.println("start meta: " + meta_start + "\n"
-							// + "goal meta: " + meta_goal);
-							meta_path = Coordinate.search(meta_start, meta_goal, blocked);
+							meta_path = Coordinate.search(meta_start, meta_goal, blocked); // Use BFS to generate the path
 							PathMap.setPath(meta_path);
 							can_move = true;
 						}
-						else
+						else										// For auto data collection
 						{
 							meta_idx = 0;
 							int meta_start = Coordinate.getGridNum(start_state);
 							int meta_goal = Coordinate.getGridNum(goal_state);
-							//Integer [] temp = null;
 							Integer [] temp2 = null;	
 							collectpath = new ArrayList<Integer>();
 							ArrayList<Integer[]> allpath = new ArrayList<Integer[]>();
-							
 							if (meta_goal > meta_start)
 							{
 								for (int i = meta_start; i < meta_goal; i++)
 								{
 									collectpath.add(i);
-									allpath.add(Coordinate.search(i, i+1, blocked));
+									allpath.add(Coordinate.search(i, i+1, blocked));	// Use BFS to generate the path between each grid
 								}
 							}
 							else
 							{
 								for (int i = meta_start; i > meta_goal; i--)
 								{
-									//System.out.println(i + "-" + (i-1));
 									collectpath.add(i);
 									allpath.add(Coordinate.search(i, i-1, blocked));
 								}
@@ -732,13 +719,7 @@ public class UI_Server extends JPanel implements MapControl {
 							int totallength = 0;
 							for (int i = 0; i < allpath.size(); i++)
 							{
-								//System.out.println(allpath.get(i).length);
 								totallength += allpath.get(i).length;
-								/*for (int j = 0; j < allpath.get(i).length; j++)
-								{
-									System.out.print(allpath.get(i)[j] + " ");
-								}
-								System.out.println();*/
 							}
 							totallength = totallength - (allpath.size() - 1);
 							int counter = allpath.get(0).length;
@@ -751,12 +732,10 @@ public class UI_Server extends JPanel implements MapControl {
 							{
 								for (int j = 1 ; j <allpath.get(i).length ; j++)
 								{
-									temp2[counter] = allpath.get(i)[j];
+									temp2[counter] = allpath.get(i)[j];				// Build up the whole path
 									counter++;
 								}
 							}
-							//for (int i = 0; i< temp2.length;i++)
-								//System.out.print(temp2[i] + " - ");
 							meta_path = temp2;
 							PathMap.setPath(meta_path);
 							can_move = true;
@@ -765,43 +744,38 @@ public class UI_Server extends JPanel implements MapControl {
 						continue;
 				}
 
-				// conduct the moving stuffs
-				if (can_move) 
+				if (can_move) 								// if path for self-guiding or auto data collection has generated
 				{
-					// ask for state information
-					out.println("temp");
-					/*
-					 * //TODO // start requesting ap signal data RobotAPSignal =
-					 * new Vector<Vector<SignalStrength>>();
-					 * RobotAPSignal.add(new Vector<SignalStrength>()); if (
-					 * out!= null ) for ( int i=0; i<num_sample; ++i ) {
-					 * out.println("getap " + sample_size + " " +
-					 * scan_interval); }
-					 */
+					out.println("temp");					// send a useless command to start guiding (Can change to "GETDATA")
 					can_move = false;
 				}
 
-				// listen to incoming message
-				
-				try {
+				// The server response to incoming message during self-guiding or auto data collection.
+				try 
+				{
 					InMessage = in.readLine();
 					String[] input = InMessage.split(" ");
 					
-					if (InMessage == null || InMessage.equals("Bye")) {
+					// "BYE" or null
+					if (InMessage == null || InMessage.equals("Bye")) 
+					{
 						connected = false;
 						break;
-					} else if (InMessage.compareToIgnoreCase("OK") == 0) {
+					} 
+					// "OK" turn finished
+					else if (InMessage.compareToIgnoreCase("OK") == 0) 
+					{
 					}
-					// while a sequence of command is finished
-					else if (InMessage.compareToIgnoreCase("FINISHED") == 0) {
+					// "FINISHED" while a sequence of command is finished
+					else if (InMessage.compareToIgnoreCase("FINISHED") == 0) 
+					{
 						can_move = true;
-						// System.out.println("AT FINISHED");
 					}
+					// "EST" at the end of the journey
 					else if (input[0].compareToIgnoreCase("EST:") == 0)
 					{
 						if (input[1].compareToIgnoreCase("END") != 0)
 						{
-							//printf(input[1] + " " + input[2]);
 							ss.add(new SignalStrength(input[1], "", Integer.parseInt(input[2]), -1, -1));
 						}
 						else
@@ -815,14 +789,13 @@ public class UI_Server extends JPanel implements MapControl {
 							printf("==============================================");
 							ss.clear();
 							break;
-							//TODO
 						}
 					}
+					// "GETAP" Auto data collection. Save the data to the database
 					else if (input[0].compareToIgnoreCase("AP:") == 0) 
 					{
 						if (input[1].compareToIgnoreCase("END") != 0) 
 						{
-							//printf(input[1] + " " + input[2]);
 							ss.add(new SignalStrength(input[1], "", Integer
 									.parseInt(input[2]), -1, -1));
 						} 
@@ -841,11 +814,9 @@ public class UI_Server extends JPanel implements MapControl {
 							printf("Dataset successfully saved!");
 							ss.clear();	
 							printf("==============================================");
-							// TODO
 						}
 					}
-					// get all the sensors and motors readings from the device
-					// and log the current state of the robot into the log file
+					// At the start of each movement
 					else if (InMessage.length() > 5
 							&& (InMessage.substring(0, 5).equalsIgnoreCase(
 									"FRONT")
@@ -854,7 +825,7 @@ public class UI_Server extends JPanel implements MapControl {
 							|| InMessage.substring(0, 5).equalsIgnoreCase(
 									"Robot")		
 									)) {
-						if (robot_mode == 1)
+						if (robot_mode == 1)			// if in auto data collection mode
 						{
 								if (iter < collectpath.size())
 								{
@@ -868,54 +839,20 @@ public class UI_Server extends JPanel implements MapControl {
 									}
 								}
 						}
-						// System.out.println("AT getdata");
-						// log the state data
-						// String[] data_in = InMessage.substring(7).split(",");
-						/*
-						 * if ( data_in.length != 6) {
-						 * System.err.println("error: data received incomplete"
-						 * ); } else { int left_sonar_reading = Integer
-						 * .parseInt(data_in[0].trim()); int right_sonar_reading
-						 * = Integer .parseInt(data_in[1].trim()); int
-						 * front_sonar_reading = Integer
-						 * .parseInt(data_in[2].trim()); int front_light_reading
-						 * = Integer .parseInt(data_in[3].trim()); int
-						 * left_motor_reading = Integer
-						 * .parseInt(data_in[4].trim()); int right_motor_reading
-						 * = Integer .parseInt(data_in[5].trim());
-						 * 
-						 * Integer[] robot_reading = { left_sonar_reading,
-						 * right_sonar_reading, front_sonar_reading,
-						 * front_light_reading, left_motor_reading,
-						 * right_motor_reading, curr_angle};
-						 * 
-						 * Logging.logStateData(log_file, robot_reading,
-						 * meta_path[meta_idx]); } /
-						 * 
-						 * 
-						 * if ( meta_idx == meta_path.length - 1 ) {
-						 * out.println("ISOBSTACLE"); // last_action = null;
-						 * meta_path = null; meta_idx = 0;
-						 * 
-						 * can_move = false; start_state = null; goal_state =
-						 * null;
-						 * 
-						 * continue; }
-						 */
+						
+						// Start guiding the robot to the next cell
 						int curr_meta_state = meta_path[meta_idx];
-						if (meta_idx != meta_path.length -1 ) {
+						if (meta_idx != meta_path.length -1 ) 			// if the robot is not at the destination
+						{
 							int next_meta_state = meta_path[++meta_idx];
-							// display the current position on the map
-							Coordinate curr_path_state = Coordinate
-									.getCoord(curr_meta_state);
-							PathMap.setRobxy(curr_path_state.x,
-									curr_path_state.y);
+							Coordinate curr_path_state = Coordinate.getCoord(curr_meta_state); 	// Display the expected position on the map
+							PathMap.setRobxy(curr_path_state.x,curr_path_state.y);
 							PathMap.repaint();
 
-							// execute the command
-							curr_angle = stateTransCommand(curr_meta_state,
-									next_meta_state, curr_angle, out);
-							switch (curr_angle) {
+							curr_angle = stateTransCommand(curr_meta_state,next_meta_state, curr_angle, out); // Execute the command by first finding if turning necessary
+							
+							switch (curr_angle) 					// Report the orientation to the console
+							{
 							case 0:
 								printf("Robot current orientation: "
 										+ curr_angle + " (Facing North)");
@@ -933,7 +870,7 @@ public class UI_Server extends JPanel implements MapControl {
 										+ curr_angle + " (Facing West)");
 								break;
 							}
-							printf("Robot current position: " + curr_meta_state);
+							printf("Robot current position: " + curr_meta_state);	// Report the expected position to the console
 							if (robot_mode != 1 )
 								printf("==============================================");
 							else if (!collected)
@@ -942,25 +879,24 @@ public class UI_Server extends JPanel implements MapControl {
 							}
 							else
 								collected = false;
-						} else
+						} 
+						else								// if the robot reach the destination
 						{
 							meta_idx++;
-							// Robot reach the destination
-							Coordinate Destination = Coordinate
-									.getCoord(curr_meta_state);
-							printf("Robot current position: " + curr_meta_state);
-							PathMap.setRobxy(Destination.x, Destination.y);
+							Coordinate Destination = Coordinate.getCoord(curr_meta_state);
+							printf("Robot current position: " + curr_meta_state);	// Report the expected position to the console
+							PathMap.setRobxy(Destination.x, Destination.y);			// Display the expected position on the map
 							PathMap.repaint();
 							printf("Robot reach the destination successfully!");
 							//TODO
-							if (robot_mode != 1 )
+							if (robot_mode != 1 )									// if in self-guiding mode, start the localization function
 							{
 								printf("==============================================");
 								TextInputField.setText("est");
 								sendMessage();
 								TextInputField.setText("");
 							}
-							else
+							else													// if in auto data collection mode, get the data for last cell and do the localization function
 							{
 								TextInputField.setText("getap");
 								sendMessage();
@@ -971,106 +907,39 @@ public class UI_Server extends JPanel implements MapControl {
 						}
 					}
 
+					// The message displayed on the console
 					OutMessage = comProtocol.processInput(InMessage);
-					if (InMessage.compareToIgnoreCase("OK") == 0) {
+					if (InMessage.compareToIgnoreCase("OK") == 0) 
+					{
 						printf("From client "
 								+ clientSock.getInetAddress().getHostName()
 								+ " : " + InMessage + " : " + OutMessage);
-					} else if (InMessage.compareToIgnoreCase("FINISHED") == 0) {
+					} 
+					else if (InMessage.compareToIgnoreCase("FINISHED") == 0) 
+					{
 						printf("From client "
 								+ clientSock.getInetAddress().getHostName()
 								+ " : " + InMessage + " : " + OutMessage);
-					} else if (OutMessage.compareToIgnoreCase("ERROR") == 0
-							|| OutMessage.compareToIgnoreCase("Front") == 0) {
+					} 
+					else if (OutMessage.compareToIgnoreCase("ERROR") == 0
+							|| OutMessage.compareToIgnoreCase("Front") == 0) 
+					{
 						printf("From client "
 								+ clientSock.getInetAddress().getHostName()
 								+ " : " + InMessage);
 					}
-					/*
-					 * if (OutMessage.compareToIgnoreCase("AP") == 0) { GetAP =
-					 * true;
-					 * RobotAPSignal.lastElement().addElement(comProtocol.GetSignal
-					 * ()); } else if (OutMessage.compareToIgnoreCase("ERROR")
-					 * == 0) { printf("From client " +
-					 * clientSock.getInetAddress().getHostName() + " : " +
-					 * InMessage); } else if
-					 * (OutMessage.compareToIgnoreCase("TURN") == 0) {
-					 * printf("From client " +
-					 * clientSock.getInetAddress().getHostName() + " : " +
-					 * OutMessage); } else if
-					 * (OutMessage.compareToIgnoreCase("MOVE") == 0) {
-					 * printf("From client " +
-					 * clientSock.getInetAddress().getHostName() + " : " +
-					 * InMessage + " " + OutMessage); }
-					 */
-					/*
-					 * else if (OutMessage.compareToIgnoreCase("END") == 0) {
-					 * GetAP = false;
-					 * printf("finished with getting ap data, saving...");
-					 * 
-					 * // clean up the current received data
-					 * SignalDatabase.preProcess(RobotAPSignal.lastElement());
-					 * 
-					 * // training data collection mode if ( robot_mode == 1 ) {
-					 * // put the current signal vector into the training set
-					 * getTrainingData( new
-					 * SignalVector(RobotAPSignal.lastElement()),
-					 * meta_path[meta_idx]); }
-					 * 
-					 * // exploring mode if ( robot_mode == 2 ) { // do nothing
-					 * }
-					 * 
-					 * // keep on collecting data if the number of data is not
-					 * enough if ( RobotAPSignal.size() < num_sample ) {
-					 * RobotAPSignal.add(new Vector<SignalStrength>()); } else {
-					 * if ( robot_mode == 1 ) { // save current training data
-					 * training_data.saveDataSet();
-					 * printf("[training mode] traning data collected"); } else
-					 * if ( robot_mode == 2 ) { // fuse the signal vectors
-					 * curr_sig_vec = new SignalVector(
-					 * SignalDatabase.dataFusion(RobotAPSignal));
-					 * printf("[exploring mode] position of the robot " +
-					 * meta_path[meta_idx]);
-					 * 
-					 * // estimate the location of the robot Integer
-					 * estim_meta_grid =
-					 * training_data.getLocation(curr_sig_vec);
-					 * printf("[exploring mode] " + 7 +
-					 * "-NN estimated location: " + estim_meta_grid); }
-					 * 
-					 * // clear the current collected signal
-					 * RobotAPSignal.clear(); } }
-					 */
-					/*
-					 * else if (OutMessage.compareToIgnoreCase("HELP") == 0) {
-					 * printf("Command List"); printf("1. STOP 'DURATION'");
-					 * printf(
-					 * "2. MOVE 'SPEED'	'DURATION'  (only move forward and backward)"
-					 * ); printf("3. TURN 'LEFTSPEED' 'RIGHTSPEED' 'DURATION'");
-					 * printf(
-					 * "4. TURNANGLE 'ANGLE' (ROBOT will stop and turn at defined angle)"
-					 * );printf(
-					 * "5. GETAP (Robot will scan and return signal strength)");
-					 * printf
-					 * ("6. ISOBSTACLE (Detect if there is obstacle away)"); }
-					 */
-					/*
-					 * else printf("From client " +
-					 * clientSock.getInetAddress().getHostName() + " : " +
-					 * InMessage + " " + OutMessage);
-					 * //System.out.println("OUTOUTOTUTOUTOT = " + OutMessage);
-					 */
 					Thread.sleep(100);
 				}
-
-				catch (InterruptedException e) {
+				catch (InterruptedException e) 
+				{
 					e.printStackTrace();
-				} catch (Exception e1) {
+				} catch (Exception e1) 
+				{
 					e1.printStackTrace();
 				}
-
 				TextDisplayField.requestFocusInWindow();
 			}
+			
 			connected = false;
 			disableALL();
 			if (robot_mode == 2)
@@ -1085,7 +954,9 @@ public class UI_Server extends JPanel implements MapControl {
 			printf("Connection to the Client has been disconnected!");
 			createServer.setEnabled(true);
 			createServer.setText("Start Server!");
-		} catch (IOException e) {
+		} 
+		catch (IOException e) 
+		{
 			printf("Reading Error:" + e.toString());
 			e.printStackTrace();
 
@@ -1095,87 +966,66 @@ public class UI_Server extends JPanel implements MapControl {
 		}
 	}
 
-	public void ServerClose() {
-		try {
+	/**
+	 * Close the server connection 
+	 */
+	public void ServerClose() 
+	{
+		try 
+		{
 			clientList.setText("");
 			can_move = false;
 			out.close();
 			in.close();
 			clientSock.close();
 			serverSock.close();
-		} catch (IOException e) {
+		} 
+		catch (IOException e) 
+		{
 			e.printStackTrace();
 		}
 	}
-
-	/*
-	 * protected void finalize() { // save the data in the end
-	 * training_data.saveDataSet(); ServerClose(); }
-	 */
-
-	// acquire ap data from the PDA, add them to our training dataset
-	/*
-	 * public void getTrainingData(Vector<SignalStrength> ap_signal_list
-	 * ,Coordinate curr_coord ) { for ( int i=0; i<ap_signal_list.size(); ++i )
-	 * { ap_signal_list.elementAt(i).x = curr_coord.x;
-	 * ap_signal_list.elementAt(i).y = curr_coord.y; }
-	 * //System.out.println("Ap data collected: "); //System.out.println();
-	 * //training_data.signal_data.add(ap_signal_list); }
+	/**
+	 * Execute the command.
 	 * 
-	 * public void getTrainingData(SignalVector novo_vec, int meta_grid) {
-	 * novo_vec.meta_grid = meta_grid; training_data.sig_vec_base.add(novo_vec);
-	 * }
+	 * @param meta1 the cell number of current position
+	 * @param meta2 the cell number of next position
+	 * @param angle the robot current facing angle
+	 * @param out the output stream
+	 * @return the int the robot new angle
 	 */
+	public static int stateTransCommand(Integer meta1, Integer meta2,Integer angle, PrintWriter out) 
+	{
+		String command1 = null; 					// Command to turn the robot
+		String command2 = "MOVE 430 70"; 			// Command to move forward. [MOVE 450 10] about 25~30 cm.
 
-	/*
-	 * public int InitialAngleG() { int OrgAngle = 0; return OrgAngle; }
-	 */
+		Integer[] children = Coordinate.meta_grid_graph.get(meta1); 			// Get the neighbor cell number of the current cell
 
-	// meta1 and meta2 are adjacent
-	public static int stateTransCommand(Integer meta1, Integer meta2,
-			Integer angle, PrintWriter out) {
-		String command1 = null; // Command to turn the robot
-		String command2 = "MOVE 430 70"; // Command to move forward. [MOVE 450
-		// 10] about 25~30 cm.
-
-		Integer[] children = Coordinate.meta_grid_graph.get(meta1); // Get the
-		// neighbor
-		// grid
-		// number of
-		// the
-		// current
-		// grid
-
-		if (children[0] == meta2) // If next grid is at [EAST] of the current
-		// grid
+		if (children[0] == meta2) 												// If next grid is at [EAST] of the current grid
 		{
-			if (angle != 90) // Check to see if the robot facing east
+			if (angle != 90) 													// Check to see if the robot facing east
 			{
 				command1 = "TURNANGLE " + Coordinate.transAngle(angle, 90);
 				angle = 90;
 			}
-		} else if (children[1] == meta2) // If next grid is at [SOUTH] of the
-		// current grid
+		} else if (children[1] == meta2) 										// If next grid is at [SOUTH] of the current grid
 		{
-			if (angle != 180) // Check to see if the robot facing south
+			if (angle != 180) 													// Check to see if the robot facing south
 			{
 				command1 = "TURNANGLE " + Coordinate.transAngle(angle, 180);
 				angle = 180;
 			}
-		} else if (children[2] == meta2) // If next grid is at [WEST] of the
-		// current grid
+		} else if (children[2] == meta2) 										// If next grid is at [WEST] of the current grid
 		{
-			if (angle != -90) // Check to see if the robot facing west
+			if (angle != -90)													// Check to see if the robot facing west
 			{
 				command1 = "TURNANGLE " + Coordinate.transAngle(angle, -90);
 				angle = -90;
 			}
 		}
-
-		else if (children[3] == meta2) // If next grid is at [NORTH] of the
-		// current grid
+		else if (children[3] == meta2) 											// If next grid is at [NORTH] of the current grid
 		{
-			if (angle != 0) // Check to see if the robot facing north
+			if (angle != 0) 													// Check to see if the robot facing north
 			{
 				command1 = "TURNANGLE " + Coordinate.transAngle(angle, 0);
 				angle = 0;
@@ -1185,14 +1035,15 @@ public class UI_Server extends JPanel implements MapControl {
 		String[] ret = { null, null };
 
 		if (command1 != null) {
-			ret[0] = command1; // turn command to turn the robot
-			ret[1] = command2; // move command to move the robot
+			ret[0] = command1; 					// turn command to turn the robot
+			ret[1] = command2; 					// move command to move the robot
 		} else {
-			ret[0] = command2; // move command only
+			ret[0] = command2; 					// move command only
 		}
 
 		// Send these commands out to the robot
-		for (int i = 0; i < ret.length; ++i) {
+		for (int i = 0; i < ret.length; ++i) 
+		{
 			if (ret[i] != null) {
 				out.println(ret[i]);
 			}
@@ -1201,5 +1052,4 @@ public class UI_Server extends JPanel implements MapControl {
 		// return the new angle for the robot
 		return angle;
 	}
-
 }

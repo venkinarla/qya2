@@ -4,8 +4,6 @@
 
 package GUI;
 
-import Data.SignalStrength;
-import Robot.Protocol;
 import Robot.Tribot;
 
 // the kernel
@@ -43,30 +41,33 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-
+/**
+ * The Class GUI_AutoCtrlPanel.
+ */
 public class GUI_AutoCtrlPanel extends JPanel
 {
-	// network
-	private int Port = 560;
-	private String IP = "localhost";
 	
-	private boolean ServerConnected;
+	private int Port = 560;						// The port value
+	private String IP = "localhost";			// The ip address
+	private boolean ServerConnected;			// The boolean value to tell if the server is connected
 	
 	//private boolean is_alternative = false;
+	private JButton connectButton;				// The button to start the connection
+	//private JButton sendButton;			
+	private JTextField TextIP, TextPort;		// The text fields for ip and port
+	private JTextArea TextDisplayField;			// The text field for message display
 	
-	private JButton connectButton;
-	//private JButton sendButton;
-	private JTextField TextIP, TextPort;// TextInputField;
-	private JTextArea TextDisplayField;
-	private JScrollPane Textscroll;
+	private JScrollPane Textscroll;				// The scroll panal that store the message text field
 	
 	//private DataCollector collector;
 
-	// the PDA control
-	private PDA pda_control;
+	private PDA pda_control;					// The client PDA
 
-	//******************** class methods *********************
-	// initializaion
+	/**
+	 * Instantiates a new auto control panel GUI.
+	 * 
+	 * @param robot the robot
+	 */
 	public GUI_AutoCtrlPanel(Tribot robot)
 	{
 		// create a new instance of the pda control system
@@ -81,16 +82,18 @@ public class GUI_AutoCtrlPanel extends JPanel
 	}
 	
 	
-	// initialize the GUI
+	/**
+	 * Initialize the GUI.
+	 */
 	public void initGUI()
 	{
 		setLayout(new BorderLayout(5, 5));
 
 		JPanel ConnectPanel = new JPanel();
 		
-		connectButton = new JButton("ON");
-		TextIP = new JTextField("localhost", 7);
-		TextPort = new JTextField("560", 5);
+		connectButton = new JButton("ON");					// The "ON" button
+		TextIP = new JTextField("localhost", 7);			// IP text field
+		TextPort = new JTextField("560", 5);				// Port text field
 		ConnectPanel.setLayout(new GridBagLayout());
 		GridBagConstraints gc = new GridBagConstraints();
 		gc.anchor = GridBagConstraints.EAST;
@@ -148,7 +151,7 @@ public class GUI_AutoCtrlPanel extends JPanel
 		{
 			public void mouseClicked( MouseEvent e )
 			{
-				Thread mythread = new Thread()
+				Thread mythread = new Thread()					// Start a new thread when the user click the "ON" button
 				{
 					public void run()
 					{
@@ -179,7 +182,7 @@ public class GUI_AutoCtrlPanel extends JPanel
 			}
 		});
 		
-		// redirect standard out to the text area
+		// redirect standard out to the text field
 		PrintStream red_stream = 
 			new PrintStream(new JTextAreaOutputStream(TextDisplayField));
 		System.setOut(red_stream);
@@ -187,11 +190,19 @@ public class GUI_AutoCtrlPanel extends JPanel
 	}
 	
 	
+	/**
+	 * Override the printf.
+	 * 
+	 * @param Message the message
+	 */
 	public void printf( String Message )
 	{
 		TextDisplayField.append(Message + "\n");
 	}
 
+	/**
+	 * Disable all button.
+	 */
 	public void disableALL()
 	{
 		connectButton.setEnabled(true);
@@ -199,6 +210,9 @@ public class GUI_AutoCtrlPanel extends JPanel
 		//sendButton.setEnabled(false);
 	}
 
+	/**
+	 * Enable all button.
+	 */
 	public void enableALL()
 	{
 		connectButton.setEnabled(false);
@@ -206,11 +220,11 @@ public class GUI_AutoCtrlPanel extends JPanel
 		//sendButton.setEnabled(true);
 	}
 
-	protected void finalize()
-	{
-		clientClose();
-	}
-
+	/**
+	 * The main method.
+	 * 
+	 * @param args the arguments
+	 */
 	public static void main( String[] args )
 	{
 		JFrame myUI = new JFrame();
@@ -218,17 +232,22 @@ public class GUI_AutoCtrlPanel extends JPanel
 		myUI.setSize(380, 520);
 		myUI.add(new GUI_AutoCtrlPanel(new Tribot()));
 		myUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		myUI.show();
+		myUI.setVisible(true);
 	}
 
 	
+	/**
+	 * Client close the connection.
+	 */
 	public void clientClose()
 	{
 		while( !pda_control.disconnectServer() );	
 		while( !pda_control.disconnectRobot() );
 	}
 
-	// setup the romote PDA spotter
+	/**
+	 * Creates the PDA client.
+	 */
 	public void CreateClient()
 	{
 		pda_control.start();

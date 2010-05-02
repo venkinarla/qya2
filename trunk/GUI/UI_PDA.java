@@ -9,19 +9,24 @@ import javax.swing.JTabbedPane;
 
 import Robot.Tribot;
 
+/**
+ * The Class PDA UI.
+ */
 public class UI_PDA extends JFrame
 {
-	//************ data member *************
-	Tribot lego;
+	Tribot lego;								// The lego robot
 	
-	//private GUI_ManualCtrlPanel manual_panel;
-	private GUI_AutoCtrlPanel auto_panel;
-	//private GUI_APCollectorPanel ap_panel;
+	//private GUI_ManualCtrlPanel manual_panel; // The manual control page that we are not using 
+	private GUI_AutoCtrlPanel auto_panel;		// The auto contorl page
+	//private GUI_APCollectorPanel ap_panel;	// The AP collector page
 	
 	//private JTabbedPane tabbed_pane;
 
-	//************ class method ************
-	// initialization
+	/**
+	 * Instantiates a new pda UI.
+	 * 
+	 * @param robot the robot
+	 */
 	public UI_PDA(Tribot robot)
 	{
 		lego = robot;
@@ -40,13 +45,18 @@ public class UI_PDA extends JFrame
 		add(auto_panel, BorderLayout.CENTER);
 	}
 
+	/**
+	 * The main method.
+	 * 
+	 * @param args the arguments
+	 */
 	public static void main( String[] args )
 	{
 		UI_PDA myUI = new UI_PDA(new Tribot());
 		myUI.setTitle("Robot Guiding System");
 		myUI.setSize(400, 520);
 		myUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		myUI.show();
+		myUI.setVisible(true);
 	}
 
 }

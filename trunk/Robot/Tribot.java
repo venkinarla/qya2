@@ -8,88 +8,79 @@ import lejos.nxt.remote.NXTCommand;
 import lejos.nxt.remote.RemoteMotor;
 import lejos.nxt.remote.RemoteSensorPort;
 
-import FileIO.Logging;
 import Robot.Protocol;
 import State.Coordinate;
 
-// implement the traditional Lego tribot
+/**
+ * The Class Tribot that control the robot.
+ * Some of the movement function were not in used.
+ */
 public class Tribot
 {
-	// ************** data member *****************
-	protected String name;
-	protected String dev_addr;
-	protected boolean connected = false;
-	protected NXTCommand cmd;
-	protected int type;
+	protected String name;						// The name of the robot
+	//protected String dev_addr;
+	protected boolean connected = false;		// The boolean to tell if the robot is connected to the client
+	protected NXTCommand cmd;					// The NXTCommand used to connect the robot
+	protected int type;							// The type of connection
 	
-	// remote ports
-	protected RemoteSensorPort port1;
-	protected RemoteSensorPort port2;
-	protected RemoteSensorPort port3;
-	protected RemoteSensorPort port4;
-	protected static int portA = 0;
-	protected static int portB = 1;
-	protected static int portC = 2;
+	protected RemoteSensorPort port1;			// The sensor port in port 1
+	protected RemoteSensorPort port2;			// The sensor port in port 2
+	protected RemoteSensorPort port3;			// The sensor port in port 3
+	protected RemoteSensorPort port4;			// The sensor port in port 4
+	protected static int portA = 0;				// The int value used for the connected motor in port A
+	protected static int portB = 1;				// The int value used for the connected motor in port B
+	protected static int portC = 2;				// The int value used for the connected motor in port C
 	
-	// motors
-	protected RemoteMotor left_motor;
-	protected RemoteMotor right_motor;
-	protected RemoteMotor aux_motor;
-	protected int left_reversed = 1;
+	protected RemoteMotor left_motor;			// The connected motor in port A
+	protected RemoteMotor right_motor;			// The connected motor in port b
+	protected RemoteMotor aux_motor;			// The connected motor in port C
+	protected int left_reversed = 1;			// The value to tell if the motors are reversed
 	protected int right_reversed = 1;
 	protected int aux_reversed = 1;
 	
-	// the guiding angle
-	int guiding_angle = 0;
-	
-	// sensors
-	protected UltrasonicSensor right_sonar = null;
+	protected UltrasonicSensor right_sonar = null;	// The sonar sensor on three sides
 	protected UltrasonicSensor left_sonar = null;
 	protected UltrasonicSensor front_sonar = null;
-	protected LightSensor front_light = null;
+	protected LightSensor front_light = null;		// The light sensor at the front
 	
-	// remote I/O
-	protected InputStream bin = null;
+	protected InputStream bin = null;				// The input and output stream of the client
 	protected OutputStream bout = null;
 	
-	// legacy PDA simulation
-	protected static Protocol comm_protocol = new Protocol();
+	protected static Protocol comm_protocol = new Protocol(); // The protocol used to communicate with the client
 	
-	// the action logging file
-	public static String log_file = "log.lgr";
+	//public static String log_file = "log.lgr";
 	
-	//****************** parameters ****************
-	// direction, initially zero facing "north"
-	protected int orientation = 0;
+	protected int orientation = 0;					// Robot direction. "0" means North
 	
-	// artificial bag
-	protected int safe_front_dist;
-	protected int safe_left_dist;
+	protected int safe_front_dist;					// The minimum distance at the front. Used for obstacle detection
+	protected int safe_left_dist;					// The minimum distance at the sides. Used for correction
 	protected int safe_right_dist;
-	
-	// threshold for sonar readings
-	protected static int sonar_thresh = 200;
 
-	// wheel diameter, check the wheel peripheral for detail
-	protected float wheel_diam;
+	//protected static int sonar_thresh = 200;
+	//protected float wheel_diam;
+	//protected float track_width;
 	
-	// track width, the length of the axis between wheels
-	protected float track_width;
-	
-	// connection types
-	protected static int BLUETOOTH = NXTCommFactory.BLUETOOTH;
+	protected static int BLUETOOTH = NXTCommFactory.BLUETOOTH; // The connection types of robot
 	protected static int USB = NXTCommFactory.USB;
 
-	private int totalforward = 0;
-	// ************** class method ****************
-	// initialize
+	private int totalforward = 0;					// The number of grid that the robot move without turning. Used for correction
+	
+	
+	/**
+	 * Instantiates a new tribot.
+	 */
 	public Tribot()
 	{
 		type = -1;
 		connected = false;
 	}
-	
-	
+
+	/**
+	 * Instantiates a new tribot.
+	 * 
+	 * @param dev_info the NXTInfo of the robot
+	 * @param conn_mode the connection mode
+	 */
 	public Tribot(NXTInfo dev_info, int conn_mode)
 	{
 		NXTComm comm = null;
@@ -113,29 +104,32 @@ public class Tribot
 		}
 	}
 	
-	// customized configuration
-	// specify the sensors and motors
+	/**
+	 * Configure the sensors and motors
+	 * 
+	 * @return true, if successful
+	 */
 	public boolean configure()
 	{
-		name = "NXT";
+		name = "NXT";						// Set the name of the robot. Used in bluetooth search
 		setBT();
 		
 		if (!connected)
-			connect(name);
+			connect(name);					// Connect the robot if not connected
 		if (connected)
 		{
 			//wheel_diam = 16.0f;
 			//track_width = 5.6f;
 
-			left_motor = new RemoteMotor(cmd, portA);
+			left_motor = new RemoteMotor(cmd, portA);	// Setup all three motors
 			right_motor = new RemoteMotor(cmd, portB);
 			aux_motor = new RemoteMotor(cmd, portC);
 		
-			left_motor.setSpeed(400); 					//MAX speed = 720
-			right_motor.setSpeed(400);
+			left_motor.setSpeed(430); 					// Setup the speed of the motors. MAX speed = 720
+			right_motor.setSpeed(430);					
 			//aux_motor.setSpeed(300);
 
-			left_sonar = new UltrasonicSensor(port1);
+			left_sonar = new UltrasonicSensor(port1);	// Setup all the sensors
 			right_sonar = new UltrasonicSensor(port2);
 			front_sonar = new UltrasonicSensor(port3);
 			//front_light = new LightSensor(port4);
@@ -143,7 +137,11 @@ public class Tribot
 		return connected;
 	}
 	
-	// connect to a tribot
+	/**
+	 * Connect to the lego robot
+	 * 
+	 * @param name the robot name
+	 */
 	public void connect( String name )
 	{
 		try
@@ -151,7 +149,7 @@ public class Tribot
 			NXTComm comm = NXTCommFactory.createNXTComm(type);
 			NXTInfo details = null;
 			
-			NXTInfo dev_info = new NXTInfo(BLUETOOTH, "NXT", "00:16:53:01:21:F9");
+			NXTInfo dev_info = new NXTInfo(BLUETOOTH, "NXT", "00:16:53:01:21:F9");		// The information of the robot that we are using
 			connected = comm.open(dev_info);
 			if (connected)
 			{
@@ -166,7 +164,7 @@ public class Tribot
 			}
 			else 
 			{
-				// display the device information
+				// display the robot information
 				String conn_type = (details.protocol == USB) ? "USB": "BLUETOOTH";
 				//System.out.println("Connected");
 				//System.out.println("================================================");
@@ -179,7 +177,7 @@ public class Tribot
 				cmd.setNXTComm(comm);
 				this.name = name;
 				this.cmd = cmd;
-				bin = comm.getInputStream();
+				bin = comm.getInputStream();					// Setup the robot input & output port for the robot
 				bout = comm.getOutputStream();
 
 				port1 = new RemoteSensorPort(cmd, 0);
@@ -195,11 +193,9 @@ public class Tribot
 		
 	}
 	
-	protected void finalize()
-	{
-		disconnect();
-	}
-	
+	/**
+	 * Disconnect from the robot.
+	 */
 	public void disconnect()
 	{
 		stop();
@@ -215,6 +211,11 @@ public class Tribot
 		}
 	}
 	
+	/**
+	 * Wait a while for the robot to travel.
+	 * 
+	 * @param millis the time millisecond
+	 */
 	public void wait( int millis )
 	{
 		try
@@ -223,11 +224,15 @@ public class Tribot
 		}
 		catch( Exception e )
 		{
-			// do nothing
 		}
 	}
-	
-	// going forward
+
+	/**
+	 * The main forward function. Handle the obstacle detection and correction.
+	 * 
+	 * @param speed the motor speed
+	 * @param duration the duration of a forward command
+	 */
 	public void forward(int speed, int duration)
 	{
 		int time_count = 0;				// Loop counter
@@ -277,7 +282,7 @@ public class Tribot
 																//--------------------------------------
 			if ( front_reading <= front_danger_dist)			// if the robot is about to hit something
 			{
-				System.out.println("FRONT HIT = " + front_reading + " HIT TIME = " + time_count + " dur = " + duration);
+				//System.out.println("FRONT HIT = " + front_reading + " HIT TIME = " + time_count + " dur = " + duration);
 				/*if (time_count + time_unit*2 >= duration)		// Ignore the last bit of distance if it is about the end of the duration
 				{
 					System.out.println("Chop end");
@@ -288,13 +293,13 @@ public class Tribot
 				{
 						correctTurnangle(turn_angle);			// Turn the robot to the right
 						turnto = 1;								// Record the turned direction. 1 = right
-						System.out.println("TURN TO RIGHT");
+						//System.out.println("TURN TO RIGHT");
 				}
 				else											// if the right side of the robot is nearer to the wall than the left side
 				{
 						correctTurnangle(-turn_angle);			// Turn the robot to the left
 						turnto = 0;								// Record the turned direction. 0 = left
-						System.out.println("TURN TO LEFT");
+						//System.out.println("TURN TO LEFT");
 				}
 				changed = true;									// Mark the robot as turned
 			}													//--------------------------------------
@@ -311,7 +316,7 @@ public class Tribot
 					{
 						changespeedforward(400,250);				// Slow down the right motor to correct the movement
 						wait(200);
-						System.out.println("LEFT CORRECT");
+						//System.out.println("LEFT CORRECT");
 					}
 					else if ( (old_left_reading > left_reading) &&	// if robot moving toward the left side slowly
 								(left_reading < right_reading)		// and if there are more space at the right side
@@ -319,7 +324,7 @@ public class Tribot
 					{
 						changespeedforward(400,300);				// Slow down the right motor to correct the movement
 						wait(200);
-						System.out.println("LEFT SMALL CORRECT");
+						//System.out.println("LEFT SMALL CORRECT");
 					}
 				}
 				if (right_reading < wing_danger_dist)
@@ -331,7 +336,7 @@ public class Tribot
 					{
 						changespeedforward(250,400);				// Slow down the left motor to correct the movement
 						wait(200);
-						System.out.println("RIGHT CORRECT");
+						//System.out.println("RIGHT CORRECT");
 					}				
 					else if ( (old_right_reading > right_reading) &&	// if robot moving toward the right side slowly 
 								(right_reading < left_reading)			// and if there are more space at the left side
@@ -339,11 +344,11 @@ public class Tribot
 					{
 						changespeedforward(300,400);				// Slow down the left motor to correct the movement
 						wait(200);
-						System.out.println("RIGHT SAMLL CORRECT");
+						//System.out.println("RIGHT SAMLL CORRECT");
 					}
 				}
 			}													//--------------------------------------
-			System.out.println(old_left_reading +" "+ old_right_reading +" "+ left_reading +" "+ right_reading);
+			//System.out.println(old_left_reading +" "+ old_right_reading +" "+ left_reading +" "+ right_reading);
 				/*if (left_reading < wing_danger_dist)
 				{
 					loggedTurnangle(-wing_angle);
@@ -383,9 +388,6 @@ public class Tribot
 															//--------------------------------------
 			if ( changed )									// if the direction of the robot is changed
 			{
-				/*if ( time_count > 0 )
-					Logging.logActionData( 
-						new String[]{"MOVE " + speed + " " + non_changed_time });*/
 				old_left_reading = getLeftDist();			// Get the left reading just after turned		
 				old_right_reading = getRightDist();			// Get the right reading just after turned
 				forward(speed);								// Move the robot forward
@@ -397,56 +399,68 @@ public class Tribot
 				{
 					while (left_reading <= 40)				
 					{
-						//forward(speed);
-						/*if (Math.abs(left_reading - old_left_reading) > 3)
+						if ( front_reading <= 20 )			// if no path is found on the right side
 						{
-							changespeedforward(400,350);
-						}*/
+							stop();
+							turnto = 0;
+							correctTurnangle(turn_angle*2);
+							old_right_reading = getRightDist();
+							forward(speed);
+							wait(200);
+							right_reading = getRightDist();
+							while (right_reading <= 40)   
+							{
+									forward(speed);
+									wait(100);
+									old_right_reading = right_reading;
+									right_reading = getRightDist();
+									front_reading = getFrontDist();
+							}
+							break;
+						}						
 						wait(100);
 						old_left_reading = left_reading;
 						left_reading = getLeftDist();
 						front_reading = getFrontDist();
+						counter++;
+						//System.out.println(counter);
 					}
-					correctTurnangle(-turn_angle);
+					if (turnto == 0)
+						correctTurnangle(turn_angle);
+					else
+						correctTurnangle(-turn_angle);
 					forward(speed);
 				}
 				else if (turnto == 0)						// if turned to left
 				{
-					while (right_reading <= 40)
+					while (right_reading <= 40)				
 					{
-						//forward(speed);
-						/*if ( front_reading <= 20 )
+						forward(speed);
+						if ( front_reading <= 20 )			// if no path is found on the left side
 						{
 							stop();
 							turnto = 1;
-							loggedTurnangle(-turn_angle*2);
+							correctTurnangle(-turn_angle*2);
 							old_left_reading = getLeftDist();
 							forward(speed);
 							wait(200);
 							left_reading = getLeftDist();
-							while (left_reading <= 40)				//   
+							while (left_reading <= 40)   
 							{
-								if (Math.abs(left_reading - old_left_reading) > 3)
-								{
-									changespeedforward(400,380);
-								}
-								wait(200);
-								old_left_reading = left_reading;
-								left_reading = getLeftDist();
-								front_reading = getFrontDist();
+									forward(speed);
+									wait(100);
+									old_left_reading = left_reading;
+									left_reading = getLeftDist();
+									front_reading = getFrontDist();
 							}
 							break;
 						}						
-						else*//* if (Math.abs(right_reading - old_right_reading) > 3)
-						{
-							changespeedforward(350,400);
-						}*/
 						wait(100);
 						old_right_reading = right_reading;
 						right_reading = getRightDist();
 						front_reading = getFrontDist();
 						counter++;
-						System.out.println(counter);
+						//System.out.println(counter);
 					}
 					if (turnto == 0)
 						correctTurnangle(turn_angle);
@@ -475,62 +489,36 @@ public class Tribot
 		stop();
 	}
 	
-	//****************** logged actions **********************
-	// these functions will be called by the path planner
-	public void loggedTurnangle( int angle )
-	{
-		turnangle(angle);
-		wait(1000);
-		//Logging.logActionData( new String[] {"TURNANGLE " + angle});
-	}
-	
+	/**
+	 * Turn angle for bypass obstacles
+	 * 
+	 * @param angle the angle
+	 */
 	public void correctTurnangle( int angle )
 	{
 		setSpeed(Math.abs(300));
 		left_motor.rotate(angle * 2, true);
 		right_motor.rotate(-angle * 2, true);
 		wait(1000);
-		//Logging.logActionData( new String[] {"TURNANGLE " + angle});
 	}
-	
-	public void loggedForward( int speed, int duration, boolean stop )
-	{
-		forward(speed);
-		wait(duration);
-		if ( stop )
-			stop();
-		Logging.logActionData( 
-				new String[] {"MOVE " + speed + " " + duration});
-	}
-	
-	public void loggedBackward( int speed, int duration, boolean stop )
-	{
-		backward(speed);
-		wait(duration);
-		if ( stop )
-			stop();
-		Logging.logActionData( 
-				new String[] {"MOVE -" + speed + " " + duration });
-	}
-	
-	public void loggedStop()
-	{
-		stop();
-		Logging.logActionData( 
-				new String[] {"STOP"});
-	}
-	
-	
-	//******************* basic kinematics ********************
-	// the angle turning function called by the device
+
+	/**
+	 * Turn angle for normal movement
+	 * 
+	 * @param angle the angle
+	 */
 	public void turnangle( int angle )
 	{
 		turnangle(300, angle);
 		orientation += angle;
 	}
 	
-	
-	// turning an angle with a specific speed
+	/**
+	 * The main turn angle function
+	 * 
+	 * @param speed the speed
+	 * @param angle the angle
+	 */
 	public void turnangle( int speed, int angle )
 	{
 		setSpeed(Math.abs(speed));
@@ -539,8 +527,9 @@ public class Tribot
 		right_motor.rotate(-angle * 2, true);
 	}
 	
-	
-	// stop the two motors for good
+	/**
+	 * Stop the robot.
+	 */
 	public void stop()
 	{
 		left_motor.stop();
@@ -549,29 +538,23 @@ public class Tribot
 		//setRightSpeed(0);
 	}
 	
-	public void setGuidingAngle(int angle)
-	{
-		guiding_angle = angle;
-	}
-	
-	// reverse the direction of the motor
+	/**
+	 * Reverse the left motor.
+	 */
 	public void reverseLeft()
 	{
 		left_reversed = -1 * left_reversed;
 	}
 	
+	/**
+	 * Reverse the right motor.
+	 */
 	public void reverseRight()
 	{
 		right_reversed = -1 * right_reversed;
 	}
-
-	public float getRealSpeed( int speed )
-	{
-		return ((float) 3.141592653589793) * wheel_diam * speed / 360;
-	}
 	
-	// turn around
-	public void turn( int left_speed, int right_speed, int duration )
+	/*public void turn( int left_speed, int right_speed, int duration )
 	{	
 		setLeftSpeed(left_speed);
 		setRightSpeed(right_speed);
@@ -593,25 +576,39 @@ public class Tribot
 		{
 		}
 		this.stop();
-	}	
+	}*/
 	
-	//************ connection settings **************
+	/**
+	 * Checks if robot is connected.
+	 * 
+	 * @return true, if connected
+	 */
 	public boolean isConnected()
 	{
 		return connected;
 	}
 	
+	/**
+	 * Sets the connection type to bluetooth.
+	 */
 	public void setBT()
 	{
 		type = BLUETOOTH;
 	}
 	
+	/**
+	 * Sets the connection type to USB.
+	 */
 	public void setUSB()
 	{
 		type = USB;
 	}
-	
-	// ************* moving commands ******************
+
+	/**
+	 * The basic forward function
+	 * 
+	 * @param speed the speed.
+	 */
 	public void forward(int speed)
 	{
 		setLeftSpeed(speed*left_reversed);
@@ -628,6 +625,12 @@ public class Tribot
 			left_motor.backward();
 	}
 	
+	/**
+	 * Correction function. Move the robot forward by using different motor speed
+	 * 
+	 * @param leftspeed the left motor speed
+	 * @param rightspeed the right motor speed
+	 */
 	public void changespeedforward(int leftspeed, int rightspeed)
 	{
 		setLeftSpeed(leftspeed*left_reversed);
@@ -644,6 +647,11 @@ public class Tribot
 			left_motor.backward();
 	}
 	
+	/**
+	 * The basic backward function.
+	 * 
+	 * @param speed the speed
+	 */
 	public void backward(int speed)
 	{
 		setLeftSpeed(speed*left_reversed);
@@ -659,6 +667,11 @@ public class Tribot
 			right_motor.backward();
 	}
 	
+	/**
+	 * Turn left.
+	 * 
+	 * @param speed the speed
+	 */
 	public void turnLeft(int speed)
 	{
 		setLeftSpeed(speed*left_reversed/2);
@@ -674,6 +687,11 @@ public class Tribot
 			right_motor.backward();
 	}
 	
+	/**
+	 * Turn right.
+	 * 
+	 * @param speed the speed
+	 */
 	public void turnRight(int speed)
 	{
 		setLeftSpeed(speed*left_reversed/2);
@@ -689,7 +707,11 @@ public class Tribot
 			right_motor.backward();
 	}
 	
-	//************** parameters getting & setting **************
+	/**
+	 * Run program stored in the NXT brick.
+	 * 
+	 * @param prog_name the program name
+	 */
 	public void runProgram( String prog_name )
 	{
 		try
@@ -704,6 +726,9 @@ public class Tribot
 		}
 	}
 	
+	/**
+	 * Stop the program.
+	 */
 	public void stopProgram(  )
 	{
 		try
@@ -715,84 +740,145 @@ public class Tribot
 			System.err.println("error: cannot stop program\n" + e.toString());
 		}
 	}
-	
-	// set current orientation 
+
+	/**
+	 * Sets the robot orientation.
+	 * 
+	 * @param novo_orientation the new orientation
+	 */
 	public void setOrientation( int novo_orientation )
 	{
 		orientation = novo_orientation;
 	}
-	
-	// get current orientation
+
+	/**
+	 * Gets the robot orientation.
+	 * 
+	 * @return the orientation
+	 */
 	public int getOrientation()
 	{
 		return orientation;
 	}
 	
+	/**
+	 * Sets the motor speed for both motor.
+	 * 
+	 * @param novo_speed the new speed
+	 */
 	public void setSpeed( int novo_speed )
 	{
 		setLeftSpeed(novo_speed);
 		setRightSpeed(novo_speed);
 	}
 	
-	// a weird bug, we have to set it twice
+	/**
+	 * Sets the left motor speed.
+	 * 
+	 * @param novo_speed the new left motor speed
+	 */
 	public void setLeftSpeed( int novo_speed )
 	{
 		left_motor.setSpeed(novo_speed * left_reversed);
 		left_motor.setSpeed(novo_speed * left_reversed);
 	}
 	
-	// a weird bug, we have to set it twice
+	/**
+	 * Sets the right motor speed.
+	 * 
+	 * @param novo_speed the new right motor speed
+	 */
 	public void setRightSpeed( int novo_speed )
 	{
 		right_motor.setSpeed(novo_speed * right_reversed);
 		right_motor.setSpeed(novo_speed * right_reversed);
 	}
 	
+	/**
+	 * Gets the left motor speed.
+	 * 
+	 * @return the left motor speed
+	 */
 	public int getLeftSpeed()
 	{
 		return left_motor.getSpeed();
 	}
 	
+	/**
+	 * Gets the right motor speed.
+	 * 
+	 * @return the right motor speed
+	 */
 	public int getRightSpeed()
 	{
 		return right_motor.getSpeed();
 	}
 	
+	/**
+	 * Gets the left motor power.
+	 * 
+	 * @return the left motor power
+	 */
 	public int getLeftPower()
 	{
 		return left_motor.getPower();
 	}
 	
+	/**
+	 * Gets the right motor power.
+	 * 
+	 * @return the right motor power
+	 */
 	public int getRightPower()
 	{
 		return right_motor.getPower();
 	}
 	
-	// front light sensor reading
+	/**
+	 * Gets the front light sensor reading.
+	 * 
+	 * @return the front light reading
+	 */
 	public int getFrontLight()
 	{
 		return front_light.readNormalizedValue();
 	}
 	
-	// front sonar reading
+	/**
+	 * Gets the front sonar sensor reading.
+	 * 
+	 * @return the front distance
+	 */
 	public int getFrontDist()
 	{
 		return front_sonar.getDistance();
 	}
 	
-	// left wing sonar reading
+	/**
+	 * Gets the left sonar sensor reading.
+	 * 
+	 * @return the left distance
+	 */
 	public int getLeftDist()
 	{
 		return left_sonar.getDistance();
 	}
 	
-	// right wing sonar reading
+	/**
+	 * Gets the right sonar sensor reading.
+	 * 
+	 * @return the right distance
+	 */
 	public int getRightDist()
 	{
 		return right_sonar.getDistance();
 	}
 	
-	
+	/**
+	 * Gets the voltage.
+	 * 
+	 * @return the voltage
+	 */
 	public int getVoltage()
 	{
 		try
@@ -807,18 +893,33 @@ public class Tribot
 	}
 	
 	
+	/**
+	 * Gets the input stream.
+	 * 
+	 * @return the input stream
+	 */
 	public InputStream getInputStream()
 	{
 		return bin;
 	}
 	
 	
+	/**
+	 * Gets the output stream.
+	 * 
+	 * @return the output stream
+	 */
 	public OutputStream getOutputStream()
 	{
 		return bout;
 	}
 	
 	
+	/**
+	 * The main method.
+	 * 
+	 * @param args the arguments
+	 */
 	public static void main(String[] args)
 	{
 		Tribot lego = new Tribot();

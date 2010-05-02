@@ -2,6 +2,12 @@ package Robot;
 
 import java.util.Vector;
 
+/**
+ * The Class of Client Protocol.
+ * Designed by previous FYP group. 
+ * Most of the things in here is useless after we change the structure.
+ * Only processInput,processCommand, RobCommand and some commands are still in use.
+ */
 public class Protocol
 {
 	private static final int MAXCOMMANDSIZE = 10;
@@ -66,9 +72,11 @@ public class Protocol
 
 	public static final String[] errorMess = { "INVALID_INPUT", "STILL_MOVING",
 			"COMMANDLIST_FULL", "DUMMY9", "DUMMY10", "DUMMY11" };
-
 	// *************** class method ********************
 	// initialization
+	/**
+	 * Instantiates a new protocol.
+	 */
 	public Protocol()
 	{
 		readed = true;
@@ -77,6 +85,12 @@ public class Protocol
 		CommandList = new Vector<RobCommand>();
 	}
 
+	/**
+	 * Sets the status.
+	 * 
+	 * @param Instatus the instatus
+	 * @return the int
+	 */
 	public int setStatus( int Instatus )
 	{
 		if (Instatus > 0 && Instatus < status.length)
@@ -86,6 +100,16 @@ public class Protocol
 		return 0;
 	}
 
+	/**
+	 * Reply.
+	 * 
+	 * @param OutStatus the out status
+	 * @param Outrespon the outrespon
+	 * @param Outvalue the outvalue
+	 * @param Outduration the outduration
+	 * @param OutError the out error
+	 * @return the string
+	 */
 	public String reply( int OutStatus, int Outrespon, int Outvalue,
 			int Outduration, int OutError )
 	{
@@ -114,6 +138,12 @@ public class Protocol
 		return output;
 	}
 
+	/**
+	 * Process the command and check to see if it is valid
+	 * 
+	 * @param command the command
+	 * @return true, if valid
+	 */
 	public boolean processCommand( String[] command )
 	{
 		int commandAction = -1, commandValue1 = 0, commandValue2 = 0, commandDuration = 0;
@@ -182,6 +212,12 @@ public class Protocol
 		return validCommand;
 	}
 
+	/**
+	 * Process the input message.
+	 * 
+	 * @param InMessage the in message
+	 * @return the string
+	 */
 	public String processInput( String InMessage )
 	{
 		if (InMessage == null)
@@ -200,23 +236,33 @@ public class Protocol
 			return respon[ERROR] + " : " + errorMess[COMMANDLIST_FULL];
 		}
 
-		validCommand = processCommand(command);
+		validCommand = processCommand(command);							// Check to see if the command is valid
 		
 		if (validCommand)
 		{
+			// "MOVE [..] [..]"
 			if (command[0].substring(0, 4).equalsIgnoreCase("MOVE"))
 				return respon[FINISHED];
+			// "TURNANGLE [..]"
 			else if(command[0].substring(0, 9).equalsIgnoreCase("TURNANGLE"))
 				return respon[OK];
 		}
 		return respon[ERROR] + " : " + errorMess[INVALID_INPUT];
 	}
 
+	/**
+	 * Gets the command list size.
+	 * 
+	 * @return the int
+	 */
 	public int GetCommandListSize()
 	{
 		return CommandList.size();
 	}
 
+	/**
+	 * Next command.
+	 */
 	public void NextCommand()
 	{
 		CurrentCommand = (RobCommand) CommandList.firstElement();
@@ -224,6 +270,11 @@ public class Protocol
 		readed = false;
 	}
 
+	/**
+	 * Gets the action.
+	 * 
+	 * @return the int
+	 */
 	public int GetAction()
 	{
 		readed = true;
@@ -232,6 +283,11 @@ public class Protocol
 		return -1;
 	}
 
+	/**
+	 * Gets the value1.
+	 * 
+	 * @return the int
+	 */
 	public int GetValue1()
 	{
 		readed = true;
@@ -240,6 +296,11 @@ public class Protocol
 		return -1;
 	}
 
+	/**
+	 * Gets the value2.
+	 * 
+	 * @return the int
+	 */
 	public int GetValue2()
 	{
 		readed = true;
@@ -248,6 +309,11 @@ public class Protocol
 		return -1;
 	}
 
+	/**
+	 * Gets the duration.
+	 * 
+	 * @return the int
+	 */
 	public int GetDuration()
 	{
 		readed = true;
@@ -256,12 +322,18 @@ public class Protocol
 		return -1;
 	}
 
+	/**
+	 * The Class RobCommand.
+	 */
 	private class RobCommand
 	{
 		public int commandAction;
 		public int commandValue1, commandValue2;
 		public int commandDuration;
 
+		/**
+		 * Instantiates a new rob command.
+		 */
 		public RobCommand()
 		{
 			commandAction = 0;
@@ -270,6 +342,14 @@ public class Protocol
 			commandDuration = 0;
 		}
 
+		/**
+		 * Instantiates a new rob command.
+		 * 
+		 * @param inAction the in action
+		 * @param inValue1 the in value1
+		 * @param inValue2 the in value2
+		 * @param inDuration the in duration
+		 */
 		public RobCommand(int inAction, int inValue1, int inValue2,
 				int inDuration)
 		{
@@ -280,6 +360,9 @@ public class Protocol
 		}
 	}
 
+	/**
+	 * Clear the command.
+	 */
 	public void clear()
 	{
 		CommandList.clear();
